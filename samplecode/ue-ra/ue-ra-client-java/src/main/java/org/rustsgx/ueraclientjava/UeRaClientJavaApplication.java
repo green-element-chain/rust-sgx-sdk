@@ -35,6 +35,7 @@ public class UeRaClientJavaApplication {
             System.out.printf("server replied:  %s\n", y);
 
             String pubkey = CommonUtils.readFileReturnFirstLine("pubkey.txt");
+            System.out.println(pubkey);
             String genHMAC = HMAC_SHA1.genHMAC(x, pubkey);
             System.out.println(genHMAC);
 

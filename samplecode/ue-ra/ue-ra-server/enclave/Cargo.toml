@@ -28,3 +28,5 @@ httparse    = { version = "1.3.2", default-features=false }
 itertools   = { version = "0.7.8" , default-features = false, features = []}
 rustls      = { path = "../../../../third_party/rustls" }
 webpki-roots= { path = "../../../../third_party/webpki-roots" }
+sha1        = { path = "../../../../third_party/rust-sha1" }
+rusthex     = { path = "../../../../third_party/rust-hex" }

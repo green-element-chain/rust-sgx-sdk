@@ -52,6 +52,7 @@ extern crate yasna;
 extern crate bit_vec;
 extern crate num_bigint;
 extern crate chrono;
+extern crate rusthex;
 
 use sgx_types::*;
 use sgx_tse::*;
@@ -71,6 +72,7 @@ use itertools::Itertools;
 
 mod cert;
 mod hex;
+mod hmac_sha1;
 
 pub const DEV_HOSTNAME:&'static str = "test-as.sgx.trustedservices.intel.com";
 //pub const PROD_HOSTNAME:&'static str = "as.sgx.trustedservices.intel.com";
@@ -590,9 +592,24 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
         }
     };
 
+    //compuate hmac
+    let mut report_data: sgx_report_data_t = sgx_report_data_t::default();
+    let mut pub_k_gx = pub_k.gx.clone();
+    pub_k_gx.reverse();
+    let mut pub_k_gy = pub_k.gy.clone();
+    pub_k_gy.reverse();
+    report_data.d[..32].clone_from_slice(&pub_k_gx);
+    report_data.d[32..].clone_from_slice(&pub_k_gy);
+
+    let req = format!("{:02x}",
+                      &report_data.d.iter().format(""));
+
+    let hash = hmac_sha1::hmac_sha1(req.as_bytes(), "111".as_bytes());
+    println!("{}",hash);
+
     tls.write("111\n".as_bytes()).unwrap();
 
-    tls.write("2222\n".as_bytes()).unwrap();
+    tls.write(hash.as_bytes()).unwrap();
 
     sgx_status_t::SGX_SUCCESS
 }
