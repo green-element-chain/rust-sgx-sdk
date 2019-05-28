@@ -590,7 +590,9 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
         }
     };
 
-    tls.write("hello back".as_bytes()).unwrap();
+    tls.write("111\n".as_bytes()).unwrap();
+
+    tls.write("2222\n".as_bytes()).unwrap();
 
     sgx_status_t::SGX_SUCCESS
 }

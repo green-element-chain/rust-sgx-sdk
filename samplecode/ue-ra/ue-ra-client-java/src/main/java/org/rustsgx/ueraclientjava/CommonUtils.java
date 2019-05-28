@@ -1,6 +1,6 @@
 package org.rustsgx.ueraclientjava;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,5 +71,65 @@ public class CommonUtils {
             }
         }
         System.out.println("\")]");
+    }
+
+    public static void writeInFileByfb(String content,String fileName) {
+        File f=new File(fileName);
+        FileWriter fw=null;
+        BufferedWriter bw=null;
+        try{
+            if(!f.exists()){
+                f.createNewFile();
+            }
+            fw=new FileWriter(f.getAbsoluteFile());
+            bw=new BufferedWriter(fw);
+            bw.write(content);
+            bw.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static String bytesToHex(byte[] bytes) {
+        StringBuffer sb = new StringBuffer();
+        for(int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(bytes[i] & 0xFF);
+            if(hex.length() < 2){
+                sb.append(0);
+            }
+            sb.append(hex);
+        }
+        return sb.toString();
+    }
+
+    public static String readFileReturnFirstLine(String fileName) {
+        File file = new File(fileName);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            String firstLine = null;
+            int line = 1;
+            // 一次读入一行，直到读入null为文件结束
+            while ((tempString = reader.readLine()) != null) {
+                // 显示行号
+                if(line == 1){
+                    firstLine = tempString;
+                }
+                line++;
+            }
+            reader.close();
+            return firstLine;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return "";
     }
 }

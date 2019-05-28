@@ -1,6 +1,7 @@
 HELP.md
 /target/
 !.mvn/wrapper/maven-wrapper.jar
+pubkey.txt
 
 ### STS ###
 .apt_generated
