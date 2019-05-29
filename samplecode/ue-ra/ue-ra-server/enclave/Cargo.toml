@@ -30,3 +30,6 @@ rustls      = { path = "../../../../third_party/rustls" }
 webpki-roots= { path = "../../../../third_party/webpki-roots" }
 sha1        = { path = "../../../../third_party/rust-sha1" }
 rusthex     = { path = "../../../../third_party/rust-hex" }
+serde_json  = { path = "../../../../third_party/serde-rs/json"}
+serde       = { path = "../../../../third_party/serde-rs/serde/serde" }
+serde_derive = { path = "../../../../third_party/serde-rs/serde/serde_derive" }
