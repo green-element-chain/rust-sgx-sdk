@@ -641,9 +641,11 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
         // Serialize it to a JSON string.
         if result.sendStatus == "end"{
             persons.push(result);
+            tls.write("success\n".as_bytes()).unwrap();
             break
         }else{
             persons.push(result);
+            tls.write("success\n".as_bytes()).unwrap();
         }
     };
 
@@ -673,7 +675,6 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
     let req = format!("{:02x}",
                       &report_data.d.iter().format(""));
     let hash = hmac_sha1::hmac_sha1(req.as_bytes(), jsonstr.as_bytes());
-    println!("{}",hash);
 
     //send the data
     jsonstr.push_str("\n");

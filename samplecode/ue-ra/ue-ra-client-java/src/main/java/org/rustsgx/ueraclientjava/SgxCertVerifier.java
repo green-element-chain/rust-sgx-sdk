@@ -1,5 +1,7 @@
 package org.rustsgx.ueraclientjava;
 
+import org.rustsgx.ueraclientjava.bean.ComputeResult;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -62,6 +64,7 @@ public class SgxCertVerifier {
                             // Verify attestation report
                             VerifyMraCert.verifyAtteReport(attnReportRaw, certData.pub_k);
                             CommonUtils.writeInFileByfb(CommonUtils.bytesToHex(certData.pub_k),"pubkey.txt");
+                            CommonUtils.writeInFileByfb(CommonUtils.bytesToHex(attnReportRaw),"report.txt");
                         } catch (Exception e) {
                             System.out.println(e.toString());
                             System.exit(0);

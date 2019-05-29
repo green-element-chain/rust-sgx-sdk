@@ -153,7 +153,6 @@ public class VerifyMraCert {
             throw new Exception("Failed to fetch isvEnclaveQuoteStatus from attestation report");
         }
 
-
         // 3 Verify quote body
         if (sgxQr.getIsvEnclaveQuoteBody().length() != 0) {
             Base64.Decoder decoder = Base64.getDecoder();
@@ -180,7 +179,7 @@ public class VerifyMraCert {
             System.out.printf("Anticipated public key = %s\n", pubKeyString);
 
             if (pubKeyString.equals(quoteReportData.getQuoteReportBody().getReportData())) {
-                System.out.println("ue RA done!");
+                System.out.println("tls connection success!");
             }
         } else {
             throw new Exception("Failed to fetch isvEnclaveQuoteBody from attestation report");

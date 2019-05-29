@@ -16,7 +16,6 @@ public class UeRaClientJavaApplication {
 
     public static void main(String[] args) {
         Gson gson = new Gson();
-
         System.out.println("Starting ue-ra-client-java");
 
         try {
@@ -30,52 +29,37 @@ public class UeRaClientJavaApplication {
             Socket s = sf.createSocket("127.0.0.1", 3443);
 
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
-            String str = "hello ue-ra-java-client";
-            Person request = new Person();
-            request.setAge(18);
-            request.setCity("BeiJing");
-            request.setStreet("dongmeng");
-            request.setSendStatus("not end");
-            out.write(gson.toJson(request).getBytes());
-
-            Person requesttwo = new Person();
-            requesttwo.setAge(19);
-            requesttwo.setCity("BeiJing");
-            requesttwo.setStreet("dongmeng");
-            requesttwo.setSendStatus("end");
-            out.write(gson.toJson(requesttwo).getBytes());
-
-
-//            Person reqThree = new Person();
-//            reqThree.setAge(19);
-//            reqThree.setCity("BeiJing");
-//            reqThree.setStreet("dongmeng");
-//            reqThree.setSendStatus("end");
-//            out.write(gson.toJson(reqThree).getBytes());
-
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            String x = in.readLine();
-            System.out.printf("server replied:  %s\n", x);
 
-            String y = in.readLine();
-            System.out.printf("server replied:  %s\n", y);
+            int status = sendData(in,out);
+            if (status == -1){
+                System.exit(0);
+            }
+
+            String compute_json = in.readLine();
+            System.out.printf("server replied:  %s\n", compute_json);
+
+            String hash = in.readLine();
+            System.out.printf("server replied:  %s\n", hash);
 
             //get the pubkey that we saved to local
             String pubkey = CommonUtils.readFileReturnFirstLine("pubkey.txt");
+            String report = CommonUtils.readFileReturnFirstLine("report.txt");
             System.out.println(pubkey);
 
             //unmarshal the result data that sgx send to us
-            ComputeResult result = gson.fromJson(x, ComputeResult.class);
+            ComputeResult result = gson.fromJson(compute_json, ComputeResult.class);
 
             SGXReport sgxRep = new SGXReport();
-            sgxRep.setHmacString(y);
+            sgxRep.setHmacString(hash);
             sgxRep.setPubkey(pubkey);
+            sgxRep.setReport(report);
 
             String sgxJson = gson.toJson(sgxRep);
             System.out.println(sgxJson);
 
             //recompute genHMAC and verify it
-            String genHMAC = HMAC_SHA1.genHMAC(x, pubkey);
+            String genHMAC = HMAC_SHA1.genHMAC(compute_json, pubkey);
             if (genHMAC.equals(sgxRep.getHmacString())){
                 System.out.println("successed to verify hmac");
             }else{
@@ -90,4 +74,39 @@ public class UeRaClientJavaApplication {
         }
     }
 
+    public static int sendData(BufferedReader in,OutputStream out){
+        try{
+            Gson gson = new Gson();
+            for (int i=0;i<10;i++){
+                Person request = new Person();
+                if(i==9){
+                    request.setAge(i);
+                    request.setCity("City"+Integer.toString(i));
+                    request.setStreet("Street"+Integer.toString(i));
+                    request.setSendStatus("end");
+                    out.write(gson.toJson(request).getBytes());
+                }else{
+                    request.setAge(i);
+                    request.setCity("City"+Integer.toString(i));
+                    request.setStreet("Street"+Integer.toString(i));
+                    request.setSendStatus("not end");
+                    out.write(gson.toJson(request).getBytes());
+                }
+
+                String rsp = in.readLine();
+                if(rsp.equals("success")){
+                }else{
+                    return -1;
+                }
+            }
+            return 0;
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return -1;
+        }
+
+    }
+
 }
+
+
