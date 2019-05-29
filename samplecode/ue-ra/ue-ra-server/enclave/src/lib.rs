@@ -82,8 +82,8 @@ mod hmac_sha1;
 
 #[derive(Serialize, Deserialize)]
 struct ComputeResult {
-    street: Vec<String>,
-    city: Vec<String>,
+    streets: Vec<String>,
+    citys: Vec<String>,
     age: u8,
 }
 
@@ -91,6 +91,7 @@ struct ComputeResult {
 struct Person {
     street: String,
     city: String,
+    sendStatus:String,
     age: u8,
 }
 
@@ -603,39 +604,62 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
     let mut conn = TcpStream::new(socket_fd).unwrap();
 
     let mut tls = rustls::Stream::new(&mut sess, &mut conn);
-    let mut plaintext = [0u8;1024]; //Vec::new();
     let mut inputstr ;
-    match tls.read(&mut plaintext) {
-        Ok(_) => {
-            inputstr = str::from_utf8(&plaintext).unwrap();
+    let mut plaintext = [0u8;1024]; //Vec::new();
+    let mut persons = Vec::new();
+    let mut jsonstr = String::new();
+    let mut json_str;
+
+    loop {
+        plaintext = [0u8;1024]; //Vec::new();
+        match tls.read(&mut plaintext) {
+            Ok(_) => {
+                inputstr = str::from_utf8(&plaintext).unwrap();
+            }
+            Err(e) => {
+                println!("Error in read_to_end: {:?}", e);
+                panic!("");
+            }
+        };
+        // length of inputstr == length of plaintext
+        // we should slice the json from it.
+        let byte = inputstr.as_bytes();
+        let mut json_size = 0;
+        for i in 0..inputstr.len() {
+            let byte = format!("{:02x}",byte[i]);
+            if byte == "00"{
+                json_size = i;
+                break
+            }
         }
-        Err(e) => {
-            println!("Error in read_to_end: {:?}", e);
-            panic!("");
+        json_str = &inputstr[0..json_size];
+        println!("Client said: {}", json_str);
+
+        // compute the result
+        // Some data structure.
+        let result :Person = serde_json::from_str(json_str).unwrap();
+        // Serialize it to a JSON string.
+        if result.sendStatus == "end"{
+            persons.push(result);
+            break
+        }else{
+            persons.push(result);
         }
     };
 
-    // length of inputstr == length of plaintext
-    // we should slice the json from it.
-    let byte = inputstr.as_bytes();
-    let mut json_size = 0;
-    for i in 0..inputstr.len() {
-        let byte = format!("{:02x}",byte[i]);
-        if byte == "00"{
-            json_size = i;
-            break
-        }
+    let mut result = ComputeResult {
+        streets: Vec::new(),
+        citys: Vec::new(),
+        age: 0,
+    };
+
+    for i in 0..persons.len(){
+        result.streets.push(persons.get(i).unwrap().street.clone());
+        result.citys.push(persons.get(i).unwrap().city.clone());
+        result.age = result.age+persons.get(i).unwrap().age;
     }
-    let json_str = &inputstr[0..json_size];
-    println!("Client said: {}", json_str);
-
-    // compute the result
-    // Some data structure.
-    let result :Person = serde_json::from_str(json_str).unwrap();
-
-    // Serialize it to a JSON string.
-    let mut jsonstr = serde_json::to_string(&result).unwrap();
-    println!("{}", jsonstr);
+    println!("result age: {}",result.age);
+    jsonstr = serde_json::to_string(&result).unwrap();
 
     //compuate hmac
     let mut report_data: sgx_report_data_t = sgx_report_data_t::default();

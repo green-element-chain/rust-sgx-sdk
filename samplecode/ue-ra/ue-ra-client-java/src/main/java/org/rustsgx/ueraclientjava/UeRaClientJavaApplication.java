@@ -2,6 +2,7 @@ package org.rustsgx.ueraclientjava;
 
 import com.google.gson.Gson;
 import org.rustsgx.ueraclientjava.bean.ComputeResult;
+import org.rustsgx.ueraclientjava.bean.Person;
 import org.rustsgx.ueraclientjava.bean.SGXReport;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -30,12 +31,27 @@ public class UeRaClientJavaApplication {
 
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             String str = "hello ue-ra-java-client";
-            ComputeResult request = new ComputeResult();
+            Person request = new Person();
             request.setAge(18);
             request.setCity("BeiJing");
             request.setStreet("dongmeng");
-
+            request.setSendStatus("not end");
             out.write(gson.toJson(request).getBytes());
+
+            Person requesttwo = new Person();
+            requesttwo.setAge(19);
+            requesttwo.setCity("BeiJing");
+            requesttwo.setStreet("dongmeng");
+            requesttwo.setSendStatus("end");
+            out.write(gson.toJson(requesttwo).getBytes());
+
+
+//            Person reqThree = new Person();
+//            reqThree.setAge(19);
+//            reqThree.setCity("BeiJing");
+//            reqThree.setStreet("dongmeng");
+//            reqThree.setSendStatus("end");
+//            out.write(gson.toJson(reqThree).getBytes());
 
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
             String x = in.readLine();
@@ -49,8 +65,7 @@ public class UeRaClientJavaApplication {
             System.out.println(pubkey);
 
             //unmarshal the result data that sgx send to us
-            ComputeResult result = gson.fromJson(x,ComputeResult.class);
-            System.out.println(result.getStreet());
+            ComputeResult result = gson.fromJson(x, ComputeResult.class);
 
             SGXReport sgxRep = new SGXReport();
             sgxRep.setHmacString(y);

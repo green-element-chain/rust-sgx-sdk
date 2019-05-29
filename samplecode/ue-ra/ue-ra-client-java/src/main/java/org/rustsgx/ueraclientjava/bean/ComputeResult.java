@@ -1,24 +1,27 @@
 package org.rustsgx.ueraclientjava.bean;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ComputeResult {
-    private String street;
-    private String city;
+    private List<String> streets = new ArrayList<String>();
+    private List<String> citys = new ArrayList<String>();;
     private int age;
 
-    public String getStreet() {
-        return street;
+    public List<String> getStreets() {
+        return streets;
     }
 
-    public void setStreet(String street) {
-        this.street = street;
+    public void setStreets(List<String> streets) {
+        this.streets = streets;
     }
 
-    public String getCity() {
-        return city;
+    public List<String> getCitys() {
+        return citys;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setCitys(List<String> citys) {
+        this.citys = citys;
     }
 
     public int getAge() {
