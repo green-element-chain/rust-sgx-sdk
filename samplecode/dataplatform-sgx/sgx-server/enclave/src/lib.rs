@@ -30,7 +30,9 @@ extern crate webpki_roots;
 extern crate yasna;
 
 use itertools::Itertools;
+use rustls::Session;
 use serde_json::{json, Value};
+use serde_json::value::Value::Null;
 use sgx_rand::*;
 use sgx_tcrypto::*;
 use sgx_tse::*;
@@ -215,7 +217,6 @@ pub fn get_sigrl_from_intel(fd: c_int, gid: u32) -> Vec<u8> {
 
     let _result = tls.write(req.as_bytes());
     let mut plaintext = Vec::new();
-
     println!("<get_sigrl> write complete");
 
     match tls.read_to_end(&mut plaintext) {
@@ -229,7 +230,6 @@ pub fn get_sigrl_from_intel(fd: c_int, gid: u32) -> Vec<u8> {
     let resp_string = String::from_utf8(plaintext.clone()).unwrap();
 
     println!("<get_sigrl> response : {}", resp_string);
-
     parse_response_sigrl(&plaintext)
 }
 
@@ -309,8 +309,7 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     let mut ias_sock: i32 = 0;
 
     let res = unsafe {
-        ocall_get_ias_socket(&mut rt as *mut sgx_status_t,
-                             &mut ias_sock as *mut i32)
+        ocall_get_ias_socket(&mut rt as *mut sgx_status_t, &mut ias_sock as *mut i32)
     };
 
     if res != sgx_status_t::SGX_SUCCESS {
@@ -320,8 +319,6 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     if rt != sgx_status_t::SGX_SUCCESS {
         return Err(rt);
     }
-
-    //println!("Got ias_sock = {}", ias_sock);
 
     // Now sigrl_vec is the revocation list, a vec<u8>
     let sigrl_vec: Vec<u8> = get_sigrl_from_intel(ias_sock, eg_num);
@@ -424,23 +421,7 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
         println!("qe_report does not match current target_info!");
         return Err(sgx_status_t::SGX_ERROR_UNEXPECTED);
     }
-
     println!("qe_report check passed");
-
-    // Debug
-    // for i in 0..quote_len {
-    //     print!("{:02X}", unsafe {*p_quote.offset(i as isize)});
-    // }
-    // println!("");
-
-    // Check qe_report to defend against replay attack
-    // The purpose of p_qe_report is for the ISV enclave to confirm the QUOTE
-    // it received is not modified by the untrusted SW stack, and not a replay.
-    // The implementation in QE is to generate a REPORT targeting the ISV
-    // enclave (target info from p_report) , with the lower 32Bytes in
-    // report.data = SHA256(p_nonce||p_quote). The ISV enclave can verify the
-    // p_qe_report and report.data to confirm the QUOTE has not be modified and
-    // is not a replay. It is optional.
 
     let mut rhs_vec: Vec<u8> = quote_nonce.rand.to_vec();
     rhs_vec.extend(&return_quote_buf[..quote_len as usize]);
@@ -495,16 +476,14 @@ fn load_certs(filename: &str) -> Vec<rustls::Certificate> {
 
 fn load_private_key(filename: &str) -> rustls::PrivateKey {
     let rsa_keys = {
-        let keyfile = fs::File::open(filename)
-            .expect("cannot open private key file");
+        let keyfile = fs::File::open(filename).expect("cannot open private key file");
         let mut reader = BufReader::new(keyfile);
         rustls::internal::pemfile::rsa_private_keys(&mut reader)
             .expect("file contains invalid rsa private key")
     };
 
     let pkcs8_keys = {
-        let keyfile = fs::File::open(filename)
-            .expect("cannot open private key file");
+        let keyfile = fs::File::open(filename).expect("cannot open private key file");
         let mut reader = BufReader::new(keyfile);
         rustls::internal::pemfile::pkcs8_private_keys(&mut reader)
             .expect("file contains invalid pkcs8 private key (encrypted keys not supported)")
@@ -518,49 +497,79 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
     }
 }
 
+#[derive(Clone)]
+pub struct EnclaveServerConfig {
+    config: Option<rustls::ServerConfig>,
+}
+
+impl EnclaveServerConfig {
+    pub fn init(&mut self, sign_type: sgx_quote_sign_type_t) -> i32 {
+        if self.config.is_none() {
+            let ecc_handle = SgxEccHandle::new();
+            let _result = ecc_handle.open();
+            let (prv_k, pub_k) = ecc_handle.create_key_pair().unwrap();
+
+            let (attn_report, sig, cert) = match create_attestation_report(&pub_k, sign_type) {
+                Ok(r) => r,
+                Err(e) => {
+                    println!("Error in create_attestation_report: {:?}", e);
+                    return -1;
+                }
+            };
+
+            let payload = attn_report + "|" + &sig + "|" + &cert;
+            let (key_der, cert_der) = match cert::gen_ecc_cert(payload, &prv_k, &pub_k, &ecc_handle) {
+                Ok(r) => r,
+                Err(e) => {
+                    println!("Error in gen_ecc_cert: {:?}", e);
+                    return -1;
+                }
+            };
+            let _result = ecc_handle.close();
+            println!("ecc_handle finished!");
+
+            let root_ca_bin = include_bytes!("../../../cert/ca.crt");
+            let mut ca_reader = BufReader::new(&root_ca_bin[..]);
+            let mut rc_store = rustls::RootCertStore::empty();
+            // Build a root ca storage
+            rc_store.add_pem_file(&mut ca_reader).unwrap();
+
+            println!("prepare to get cert ...");
+            // Build a default authenticator which allow every authenticated client
+            let authenticator = rustls::AllowAnyAuthenticatedClient::new(rc_store);
+            let mut cfg = rustls::ServerConfig::new(authenticator);
+            let mut certs = Vec::new();
+            certs.push(rustls::Certificate(cert_der));
+            let private_key = rustls::PrivateKey(key_der);
+            cfg.set_single_cert_with_ocsp_and_sct(certs, private_key, vec![], vec![]).unwrap();
+
+            println!("prepare to get tcp stream.");
+            self.config = Some(cfg);
+        }
+        return 0;
+    }
+
+    pub fn get(&mut self) -> rustls::ServerConfig {
+        self.config.clone().unwrap()
+    }
+}
+
+static mut SERVER_CONFIG: EnclaveServerConfig = EnclaveServerConfig { config: None };
 
 #[no_mangle]
 pub extern "C" fn run_server(socket_fd: c_int, sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
-    // Generate Keypair
-    let ecc_handle = SgxEccHandle::new();
-    let _result = ecc_handle.open();
-    let (prv_k, pub_k) = ecc_handle.create_key_pair().unwrap();
-
-    let (attn_report, sig, cert) = match create_attestation_report(&pub_k, sign_type) {
-        Ok(r) => r,
-        Err(e) => {
-            println!("Error in create_attestation_report: {:?}", e);
-            return e;
+    // Check session has been initialized
+    unsafe {
+        let init_result: i32 = SERVER_CONFIG.init(sign_type);
+        if init_result < 0 {
+            return sgx_status_t::SGX_ERROR_UNEXPECTED;
         }
-    };
+    }
 
-    let payload = attn_report + "|" + &sig + "|" + &cert;
-    let (key_der, cert_der) = match cert::gen_ecc_cert(payload, &prv_k, &pub_k, &ecc_handle) {
-        Ok(r) => r,
-        Err(e) => {
-            println!("Error in gen_ecc_cert: {:?}", e);
-            return e;
-        }
-    };
-    let _result = ecc_handle.close();
-    println!("ecc_handle finished!");
+    // Get tcp stream by session
+    let mut cfg: rustls::ServerConfig;
+    unsafe { cfg = SERVER_CONFIG.get() }
 
-    let root_ca_bin = include_bytes!("../../../cert/ca.crt");
-    let mut ca_reader = BufReader::new(&root_ca_bin[..]);
-    let mut rc_store = rustls::RootCertStore::empty();
-    // Build a root ca storage
-    rc_store.add_pem_file(&mut ca_reader).unwrap();
-
-    println!("prepare to get cert ...");
-    // Build a default authenticator which allow every authenticated client
-    let authenticator = rustls::AllowAnyAuthenticatedClient::new(rc_store);
-    let mut cfg = rustls::ServerConfig::new(authenticator);
-    let mut certs = Vec::new();
-    certs.push(rustls::Certificate(cert_der));
-    let privkey = rustls::PrivateKey(key_der);
-    cfg.set_single_cert_with_ocsp_and_sct(certs, privkey, vec![], vec![]).unwrap();
-
-    println!("prepare to get tcp stream.");
     let mut sess = rustls::ServerSession::new(&Arc::new(cfg));
     let mut conn = TcpStream::new(socket_fd).unwrap();
     let mut tls = rustls::Stream::new(&mut sess, &mut conn);
@@ -653,7 +662,6 @@ pub extern "C" fn run_server(socket_fd: c_int, sign_type: sgx_quote_sign_type_t)
     //send the data
     jsonstr.push_str("\n");
     tls.write(jsonstr.as_bytes()).unwrap();
-
     tls.write(hash.as_bytes()).unwrap();*/
 
     sgx_status_t::SGX_SUCCESS
