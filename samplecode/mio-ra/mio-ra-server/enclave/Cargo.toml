@@ -18,6 +18,8 @@ sgx_tse     = { path = "../../../../sgx_tse"}
 sgx_rand    = { path = "../../../../sgx_rand"}
 
 [dependencies]
+mio         = { path = "../../../../third_party/mio" }
+log         = { path = "../../../../third_party/log", features = ["std"] }
 chrono      = { path = "../../../../third_party/chrono" }
 webpki      = { path = "../../../../third_party/webpki" }
 base64      = { path = "../../../../third_party/rust-base64" }
