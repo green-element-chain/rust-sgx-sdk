@@ -50,6 +50,7 @@ extern crate base64;
 extern crate httparse;
 extern crate yasna;
 extern crate bit_vec;
+extern crate mio;
 extern crate num_bigint;
 extern crate chrono;
 extern crate rusthex;
@@ -57,6 +58,8 @@ extern crate serde_json;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate log;
 
 use sgx_types::*;
 use sgx_tse::*;
@@ -79,6 +82,7 @@ use serde_json::{json, Value};
 mod cert;
 mod hex;
 mod hmac_sha1;
+mod mio_server;
 
 #[derive(Serialize, Deserialize)]
 struct ComputeResult {
@@ -681,6 +685,8 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
     tls.write(jsonstr.as_bytes()).unwrap();
 
     tls.write(hash.as_bytes()).unwrap();
+
+    mio_server::run_server();
 
     sgx_status_t::SGX_SUCCESS
 }
