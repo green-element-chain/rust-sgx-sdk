@@ -29,6 +29,8 @@
 #![crate_name = "miora"]
 #![crate_type = "staticlib"]
 
+#![allow(dead_code)]
+
 #![cfg_attr(not(target_env = "sgx"), no_std)]
 #![cfg_attr(target_env = "sgx", feature(rustc_private))]
 
@@ -678,15 +680,16 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
 
     let req = format!("{:02x}",
                       &report_data.d.iter().format(""));
-    let hash = hmac_sha1::hmac_sha1(req.as_bytes(), jsonstr.as_bytes());
+    let mut hash = hmac_sha1::hmac_sha1(req.as_bytes(), jsonstr.as_bytes());
 
     //send the data
     jsonstr.push_str("\n");
     tls.write(jsonstr.as_bytes()).unwrap();
 
+    hash.push_str("\n");
     tls.write(hash.as_bytes()).unwrap();
 
-    mio_server::run_server();
+    mio_server::run_mioserver();
 
     sgx_status_t::SGX_SUCCESS
 }

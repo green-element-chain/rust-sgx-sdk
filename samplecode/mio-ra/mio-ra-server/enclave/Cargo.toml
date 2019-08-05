@@ -12,7 +12,7 @@ default = []
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 sgx_types   = { path = "../../../../sgx_types" }
-sgx_tstd    = { path = "../../../../sgx_tstd", features = ["net"] }
+sgx_tstd    = { path = "../../../../sgx_tstd", features = ["net", "untrusted_fs"] }
 sgx_tcrypto = { path = "../../../../sgx_tcrypto" }
 sgx_tse     = { path = "../../../../sgx_tse"}
 sgx_rand    = { path = "../../../../sgx_rand"}
