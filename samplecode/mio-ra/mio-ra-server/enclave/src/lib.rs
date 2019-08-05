@@ -604,7 +604,11 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
     certs.push(rustls::Certificate(cert_der));
     let privkey = rustls::PrivateKey(key_der);
 
+    let mut mio_cert = certs.clone();
+    let mut mio_pk = privkey.clone();
+
     cfg.set_single_cert_with_ocsp_and_sct(certs, privkey, vec![], vec![]).unwrap();
+
 
     let mut sess = rustls::ServerSession::new(&Arc::new(cfg));
     let mut conn = TcpStream::new(socket_fd).unwrap();
@@ -689,7 +693,7 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
     hash.push_str("\n");
     tls.write(hash.as_bytes()).unwrap();
 
-    mio_server::run_mioserver();
+    mio_server::run_mioserver(&mut mio_cert,&mut mio_pk);
 
     sgx_status_t::SGX_SUCCESS
 }

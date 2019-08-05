@@ -5,7 +5,7 @@ use std::io::{self, Write, Read, BufReader};
 use std::net;
 use std::net::Shutdown;
 use std::sync::Arc;
-use rustls::{Session, NoClientAuth};
+use rustls::{Session, NoClientAuth, ServerConfig};
 use mio::net::{TcpListener, TcpStream};
 
 // Token for our listening socket.
@@ -390,7 +390,7 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
     }
 }
 
-pub fn run_mioserver(){
+pub fn run_mioserver(mio_cert: &mut Vec<rustls::Certificate>, mio_key: &mut rustls::PrivateKey){
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
     let cert = "end.fullchain";
     let key = "end.rsa";
