@@ -1,4 +1,4 @@
-package org.rustsgx.mioraclientjava;
+package org.rustsgx.mioraclientjava.raverify;
 
 //TODO: add more origin filed if needed
 public class QuoteReportData {

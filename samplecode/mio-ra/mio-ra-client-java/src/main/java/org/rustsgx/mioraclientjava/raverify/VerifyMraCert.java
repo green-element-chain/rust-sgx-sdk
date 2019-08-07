@@ -1,4 +1,4 @@
-package org.rustsgx.mioraclientjava;
+package org.rustsgx.mioraclientjava.raverify;
 
 import com.google.gson.Gson;
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;

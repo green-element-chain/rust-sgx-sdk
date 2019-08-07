@@ -1,4 +1,4 @@
-package org.rustsgx.mioraclientjava;
+package org.rustsgx.mioraclientjava.raverify;
 
 public class SgxQuoteReport {
     private String id;

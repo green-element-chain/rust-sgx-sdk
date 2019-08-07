@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import org.rustsgx.mioraclientjava.bean.ComputeResult;
 import org.rustsgx.mioraclientjava.bean.Person;
 import org.rustsgx.mioraclientjava.bean.SGXReport;
+import org.rustsgx.mioraclientjava.raverify.CommonUtils;
+import org.rustsgx.mioraclientjava.raverify.HMAC_SHA1;
+import org.rustsgx.mioraclientjava.raverify.SgxCertVerifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.net.ssl.*;

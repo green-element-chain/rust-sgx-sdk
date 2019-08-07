@@ -1,10 +1,6 @@
-package org.rustsgx.mioraclientjava;
+package org.rustsgx.mioraclientjava.raverify;
 
-import org.rustsgx.mioraclientjava.bean.ComputeResult;
-
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -17,8 +13,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class SgxCertVerifier {
-    TrustManager[] trustAllCerts;
-    KeyManagerFactory keyManagerFactory;
+    public TrustManager[] trustAllCerts;
+    public KeyManagerFactory keyManagerFactory;
 
     public SgxCertVerifier() throws Exception {
         //init keyManagerFactory

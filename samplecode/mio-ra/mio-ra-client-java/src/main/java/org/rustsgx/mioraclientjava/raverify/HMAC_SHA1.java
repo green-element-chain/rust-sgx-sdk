@@ -1,4 +1,4 @@
-package org.rustsgx.mioraclientjava;
+package org.rustsgx.mioraclientjava.raverify;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

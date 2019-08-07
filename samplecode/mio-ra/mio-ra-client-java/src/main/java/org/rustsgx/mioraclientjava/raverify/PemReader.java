@@ -1,4 +1,4 @@
-package org.rustsgx.mioraclientjava;
+package org.rustsgx.mioraclientjava.raverify;
 
 import java.io.*;
 import java.nio.CharBuffer;
