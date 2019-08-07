@@ -18,6 +18,43 @@ import java.security.*;
 public class MioRaClientJavaApplication {
 
     public static void main(String[] args) {
+        verifyQuoteReport();
+    }
+
+    public static int sendData(BufferedReader in,OutputStream out){
+        try{
+            Gson gson = new Gson();
+            for (int i=0;i<10;i++){
+                Person request = new Person();
+                if(i==9){
+                    request.setAge(i);
+                    request.setCity("City"+Integer.toString(i));
+                    request.setStreet("Street"+Integer.toString(i));
+                    request.setSendStatus("end");
+                    out.write(gson.toJson(request).getBytes());
+                }else{
+                    request.setAge(i);
+                    request.setCity("City"+Integer.toString(i));
+                    request.setStreet("Street"+Integer.toString(i));
+                    request.setSendStatus("not end");
+                    out.write(gson.toJson(request).getBytes());
+                }
+
+                String rsp = in.readLine();
+                if(rsp.equals("success")){
+                }else{
+                    return -1;
+                }
+            }
+            return 0;
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return -1;
+        }
+
+    }
+
+    public static void verifyQuoteReport(){
         Gson gson = new Gson();
         System.out.println("Starting ue-ra-client-java");
 
@@ -75,39 +112,6 @@ public class MioRaClientJavaApplication {
             System.out.println(e.toString());
             System.exit(0);
         }
-    }
-
-    public static int sendData(BufferedReader in,OutputStream out){
-        try{
-            Gson gson = new Gson();
-            for (int i=0;i<10;i++){
-                Person request = new Person();
-                if(i==9){
-                    request.setAge(i);
-                    request.setCity("City"+Integer.toString(i));
-                    request.setStreet("Street"+Integer.toString(i));
-                    request.setSendStatus("end");
-                    out.write(gson.toJson(request).getBytes());
-                }else{
-                    request.setAge(i);
-                    request.setCity("City"+Integer.toString(i));
-                    request.setStreet("Street"+Integer.toString(i));
-                    request.setSendStatus("not end");
-                    out.write(gson.toJson(request).getBytes());
-                }
-
-                String rsp = in.readLine();
-                if(rsp.equals("success")){
-                }else{
-                    return -1;
-                }
-            }
-            return 0;
-        }catch (Exception e){
-            System.out.println(e.toString());
-            return -1;
-        }
-
     }
 
 }
