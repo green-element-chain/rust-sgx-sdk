@@ -49,8 +49,7 @@ static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";
 
 extern {
-    fn run_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
-        socket_fd: c_int, sign_type: sgx_quote_sign_type_t) -> sgx_status_t;
+    fn run_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t;
 }
 
 #[no_mangle]
@@ -241,25 +240,29 @@ fn main() {
 
     println!("Running as server...");
     let listener = TcpListener::bind("0.0.0.0:3443").unwrap();
-    match listener.accept() {
-        Ok((socket, addr)) => {
-            println!("new client from {:?}", addr);
-            let mut retval = sgx_status_t::SGX_SUCCESS;
-            let result = unsafe {
-                run_server(enclave.geteid(), &mut retval, socket.as_raw_fd(), sign_type)
-            };
-            match result {
-                sgx_status_t::SGX_SUCCESS => {
-                    println!("ECALL success!");
-                },
-                _ => {
-                    println!("[-] ECALL Enclave Failed {}!", result.as_str());
-                    return;
-                }
-            }
+
+    let mut retval = sgx_status_t::SGX_SUCCESS;
+    let result = unsafe {
+        run_server(enclave.geteid(), &mut retval,  sign_type)
+    };
+    match result {
+        sgx_status_t::SGX_SUCCESS => {
+            println!("ECALL success!");
+        },
+        _ => {
+            println!("[-] ECALL Enclave Failed {}!", result.as_str());
+            return;
         }
-        Err(e) => println!("couldn't get client: {:?}", e),
     }
+
+
+
+//    match listener.accept() {
+//        Ok((socket, addr)) => {
+//
+//        }
+//        Err(e) => println!("couldn't get client: {:?}", e),
+//    }
 
     println!("[+] Done!");
 

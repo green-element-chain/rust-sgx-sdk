@@ -181,7 +181,7 @@ public class VerifyMraCert {
             System.out.printf("Anticipated public key = %s\n", pubKeyString);
 
             if (pubKeyString.equals(quoteReportData.getQuoteReportBody().getReportData())) {
-                System.out.println("tls connection success!");
+                System.out.println("tls connection success!\n\n\n\n");
             }
         } else {
             throw new Exception("Failed to fetch isvEnclaveQuoteBody from attestation report");

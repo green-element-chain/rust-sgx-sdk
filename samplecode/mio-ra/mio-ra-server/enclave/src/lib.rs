@@ -567,7 +567,7 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
 }
 
 #[no_mangle]
-pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
+pub extern "C" fn run_server( sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
     // Generate Keypair
     let ecc_handle = SgxEccHandle::new();
     let _result = ecc_handle.open();
@@ -607,93 +607,93 @@ pub extern "C" fn run_server(socket_fd : c_int, sign_type: sgx_quote_sign_type_t
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
 
-    cfg.set_single_cert_with_ocsp_and_sct(certs, privkey, vec![], vec![]).unwrap();
+//    cfg.set_single_cert_with_ocsp_and_sct(certs, privkey, vec![], vec![]).unwrap();
+//
+//
+//    let mut sess = rustls::ServerSession::new(&Arc::new(cfg));
+//    let mut conn = TcpStream::new(socket_fd).unwrap();
+//
+//    let mut tls = rustls::Stream::new(&mut sess, &mut conn);
+//    let mut inputstr ;
+//    let mut plaintext = [0u8;1024]; //Vec::new();
+//    let mut persons = Vec::new();
+//    let mut jsonstr = String::new();
+//    let mut json_str;
+//
+//    loop {
+//        plaintext = [0u8;1024]; //Vec::new();
+//        match tls.read(&mut plaintext) {
+//            Ok(_) => {
+//                inputstr = str::from_utf8(&plaintext).unwrap();
+//            }
+//            Err(e) => {
+//                println!("Error in read_to_end: {:?}", e);
+//                panic!("");
+//            }
+//        };
+//        // length of inputstr == length of plaintext
+//        // we should slice the json from it.
+//        let byte = inputstr.as_bytes();
+//        let mut json_size = 0;
+//        for i in 0..inputstr.len() {
+//            let byte = format!("{:02x}",byte[i]);
+//            if byte == "00"{
+//                json_size = i;
+//                break
+//            }
+//        }
+//        json_str = &inputstr[0..json_size];
+//        println!("Client said: {}", json_str);
+//
+//        // compute the result
+//        // Some data structure.
+//        let result :Person = serde_json::from_str(json_str).unwrap();
+//        // Serialize it to a JSON string.
+//        if result.sendStatus == "end"{
+//            persons.push(result);
+//            tls.write("success\n".as_bytes()).unwrap();
+//            break
+//        }else{
+//            persons.push(result);
+//            tls.write("success\n".as_bytes()).unwrap();
+//        }
+//    };
+//
+//    let mut result = ComputeResult {
+//        streets: Vec::new(),
+//        citys: Vec::new(),
+//        age: 0,
+//    };
+//
+//    for i in 0..persons.len(){
+//        result.streets.push(persons.get(i).unwrap().street.clone());
+//        result.citys.push(persons.get(i).unwrap().city.clone());
+//        result.age = result.age+persons.get(i).unwrap().age;
+//    }
+//    println!("result age: {}",result.age);
+//    jsonstr = serde_json::to_string(&result).unwrap();
+//
+//    //compuate hmac
+//    let mut report_data: sgx_report_data_t = sgx_report_data_t::default();
+//    let mut pub_k_gx = pub_k.gx.clone();
+//    pub_k_gx.reverse();
+//    let mut pub_k_gy = pub_k.gy.clone();
+//    pub_k_gy.reverse();
+//    report_data.d[..32].clone_from_slice(&pub_k_gx);
+//    report_data.d[32..].clone_from_slice(&pub_k_gy);
+//
+//    let req = format!("{:02x}",
+//                      &report_data.d.iter().format(""));
+//    let mut hash = hmac_sha1::hmac_sha1(req.as_bytes(), jsonstr.as_bytes());
+//
+//    //send the data
+//    jsonstr.push_str("\n");
+//    tls.write(jsonstr.as_bytes()).unwrap();
+//
+//    hash.push_str("\n");
+//    tls.write(hash.as_bytes()).unwrap();
 
-
-    let mut sess = rustls::ServerSession::new(&Arc::new(cfg));
-    let mut conn = TcpStream::new(socket_fd).unwrap();
-
-    let mut tls = rustls::Stream::new(&mut sess, &mut conn);
-    let mut inputstr ;
-    let mut plaintext = [0u8;1024]; //Vec::new();
-    let mut persons = Vec::new();
-    let mut jsonstr = String::new();
-    let mut json_str;
-
-    loop {
-        plaintext = [0u8;1024]; //Vec::new();
-        match tls.read(&mut plaintext) {
-            Ok(_) => {
-                inputstr = str::from_utf8(&plaintext).unwrap();
-            }
-            Err(e) => {
-                println!("Error in read_to_end: {:?}", e);
-                panic!("");
-            }
-        };
-        // length of inputstr == length of plaintext
-        // we should slice the json from it.
-        let byte = inputstr.as_bytes();
-        let mut json_size = 0;
-        for i in 0..inputstr.len() {
-            let byte = format!("{:02x}",byte[i]);
-            if byte == "00"{
-                json_size = i;
-                break
-            }
-        }
-        json_str = &inputstr[0..json_size];
-        println!("Client said: {}", json_str);
-
-        // compute the result
-        // Some data structure.
-        let result :Person = serde_json::from_str(json_str).unwrap();
-        // Serialize it to a JSON string.
-        if result.sendStatus == "end"{
-            persons.push(result);
-            tls.write("success\n".as_bytes()).unwrap();
-            break
-        }else{
-            persons.push(result);
-            tls.write("success\n".as_bytes()).unwrap();
-        }
-    };
-
-    let mut result = ComputeResult {
-        streets: Vec::new(),
-        citys: Vec::new(),
-        age: 0,
-    };
-
-    for i in 0..persons.len(){
-        result.streets.push(persons.get(i).unwrap().street.clone());
-        result.citys.push(persons.get(i).unwrap().city.clone());
-        result.age = result.age+persons.get(i).unwrap().age;
-    }
-    println!("result age: {}",result.age);
-    jsonstr = serde_json::to_string(&result).unwrap();
-
-    //compuate hmac
-    let mut report_data: sgx_report_data_t = sgx_report_data_t::default();
-    let mut pub_k_gx = pub_k.gx.clone();
-    pub_k_gx.reverse();
-    let mut pub_k_gy = pub_k.gy.clone();
-    pub_k_gy.reverse();
-    report_data.d[..32].clone_from_slice(&pub_k_gx);
-    report_data.d[32..].clone_from_slice(&pub_k_gy);
-
-    let req = format!("{:02x}",
-                      &report_data.d.iter().format(""));
-    let mut hash = hmac_sha1::hmac_sha1(req.as_bytes(), jsonstr.as_bytes());
-
-    //send the data
-    jsonstr.push_str("\n");
-    tls.write(jsonstr.as_bytes()).unwrap();
-
-    hash.push_str("\n");
-    tls.write(hash.as_bytes()).unwrap();
-
-    mio_server::run_mioserver(&mut mio_cert,&mut mio_pk);
+    mio_server::run_mioserver(mio_cert.clone(),mio_pk.clone());
 
     sgx_status_t::SGX_SUCCESS
 }

@@ -1,3 +1,4 @@
+use std::prelude::v1::*;
 use std::untrusted::fs;
 use std::vec::Vec;
 use std::collections::HashMap;
@@ -7,6 +8,7 @@ use std::net::Shutdown;
 use std::sync::Arc;
 use rustls::{Session, NoClientAuth, ServerConfig};
 use mio::net::{TcpListener, TcpStream};
+use Person;
 
 // Token for our listening socket.
 const LISTENER: mio::Token = mio::Token(0);
@@ -219,10 +221,25 @@ impl Connection {
             self.closing = true;
             return;
         }
+        let mut persons = Vec::new();
 
         if !buf.is_empty() {
+            let inputstr = std::str::from_utf8(&buf).unwrap();
             debug!("plaintext read {:?}", buf.len());
             self.incoming_plaintext(&buf);
+
+            let result :Person = serde_json::from_str(inputstr).unwrap();
+            if result.sendStatus == "end"{
+                persons.push(result);
+                self.tls_session.write("success\n".as_bytes()).unwrap();
+                self.tls_session.send_close_notify();
+            }else{
+                persons.push(result);
+                self.tls_session.write("success\n".as_bytes()).unwrap();
+            }
+
+        }else{
+            println!("buf is empty");
         }
     }
 
@@ -262,7 +279,9 @@ impl Connection {
     fn incoming_plaintext(&mut self, buf: &[u8]) {
         match self.mode {
             ServerMode::Echo => {
-                self.tls_session.write_all(buf).unwrap();
+                let inputstr = std::str::from_utf8(buf).unwrap();
+                println!("Client said: {}", inputstr);
+                self.tls_session.write("success\n".as_bytes()).unwrap();
             }
             ServerMode::Http => {
                 self.send_http_response_once();
@@ -347,57 +366,23 @@ impl Connection {
 }
 
 
-fn make_config(cert: &str, key: &str) -> Arc<rustls::ServerConfig> {
+fn make_config(cert: Vec<rustls::Certificate>, key: rustls::PrivateKey) -> Arc<rustls::ServerConfig> {
 
     let mut config = rustls::ServerConfig::new(NoClientAuth::new());
 
-    let certs = load_certs(cert);
-    let privkey = load_private_key(key);
-    config.set_single_cert_with_ocsp_and_sct(certs, privkey, vec![], vec![]).unwrap();
+    config.set_single_cert_with_ocsp_and_sct(cert, key, vec![], vec![]).unwrap();
 
     Arc::new(config)
 }
 
-fn load_certs(filename: &str) -> Vec<rustls::Certificate> {
-    let certfile = fs::File::open(filename).expect("cannot open certificate file");
-    let mut reader = BufReader::new(certfile);
-    rustls::internal::pemfile::certs(&mut reader).unwrap()
-}
-
-fn load_private_key(filename: &str) -> rustls::PrivateKey {
-    let rsa_keys = {
-        let keyfile = fs::File::open(filename)
-            .expect("cannot open private key file");
-        let mut reader = BufReader::new(keyfile);
-        rustls::internal::pemfile::rsa_private_keys(&mut reader)
-            .expect("file contains invalid rsa private key")
-    };
-
-    let pkcs8_keys = {
-        let keyfile = fs::File::open(filename)
-            .expect("cannot open private key file");
-        let mut reader = BufReader::new(keyfile);
-        rustls::internal::pemfile::pkcs8_private_keys(&mut reader)
-            .expect("file contains invalid pkcs8 private key (encrypted keys not supported)")
-    };
-
-    // prefer to load pkcs8 keys
-    if !pkcs8_keys.is_empty() {
-        pkcs8_keys[0].clone()
-    } else {
-        assert!(!rsa_keys.is_empty());
-        rsa_keys[0].clone()
-    }
-}
-
-pub fn run_mioserver(mio_cert: &mut Vec<rustls::Certificate>, mio_key: &mut rustls::PrivateKey){
+pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey){
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
     let cert = "end.fullchain";
     let key = "end.rsa";
-    //let mode = ServerMode::Echo;
-    let mode = ServerMode::Http;
+    let mode = ServerMode::Echo;
+//    let mode = ServerMode::Http;
 
-    let config = make_config(cert, key);
+    let config = make_config(mio_cert, mio_key);
 
     let listener = TcpListener::bind(&addr).expect("cannot listen on port");
     let mut poll = mio::Poll::new()
@@ -411,7 +396,7 @@ pub fn run_mioserver(mio_cert: &mut Vec<rustls::Certificate>, mio_key: &mut rust
 
     let mut tlsserv = TlsServer::new(listener, mode, config);
 
-    println!("You are staring : {}","mio_server");
+    println!("\n\n\n\nYou are staring : {}","mio_server");
 
     let mut events = mio::Events::with_capacity(256);
     'outer: loop {

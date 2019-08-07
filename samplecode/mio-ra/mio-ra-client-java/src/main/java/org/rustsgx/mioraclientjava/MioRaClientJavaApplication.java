@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import org.rustsgx.mioraclientjava.bean.ComputeResult;
 import org.rustsgx.mioraclientjava.bean.Person;
 import org.rustsgx.mioraclientjava.bean.SGXReport;
-import org.rustsgx.mioraclientjava.miocommun.AppClient;
-import org.rustsgx.mioraclientjava.miocommun.MioCertVerifer;
 import org.rustsgx.mioraclientjava.raverify.CommonUtils;
 import org.rustsgx.mioraclientjava.raverify.HMAC_SHA1;
 import org.rustsgx.mioraclientjava.raverify.SgxCertVerifier;
@@ -15,77 +13,47 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.Socket;
 import java.security.*;
-import java.util.HashMap;
 
 @SpringBootApplication
 public class MioRaClientJavaApplication {
 
     public static void main(String[] args) {
-        verifyQuoteReport();
-
         verifyMioServer();
     }
 
-    public static void verifyQuoteReport(){
+    public static void verifyMioServer(){
         Gson gson = new Gson();
-        System.out.println("Starting ue-ra-client-java");
+        System.out.println("Starting mio-client-java");
 
         try {
-            SSLContext sc = SSLContext.getInstance("SSL");
+            SSLContext sc = SSLContext.getInstance("TLS");
             SgxCertVerifier sgxCertVerifier = new SgxCertVerifier();
             sc.init(sgxCertVerifier.keyManagerFactory.getKeyManagers(), sgxCertVerifier.trustAllCerts, new SecureRandom());
 
             SSLSocketFactory sf = sc.getSocketFactory();
 
-            System.out.println("Connecting to  localhost:3443");
-            Socket s = sf.createSocket("127.0.0.1", 3443);
+            Socket s = sf.createSocket("127.0.0.1", 8443);
 
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+
+            System.out.println("before senddata");
 
             int status = sendData(in,out);
             if (status == -1){
                 System.exit(0);
             }
 
-            String compute_json = in.readLine();
-            System.out.printf("server replied:  %s\n", compute_json);
+            System.out.println("end senddata");
 
-            String hash = in.readLine();
-            System.out.printf("server replied:  %s\n", hash);
 
-            //get the pubkey that we saved to local
-            String pubkey = CommonUtils.readFileReturnFirstLine("pubkey.txt");
-            String report = CommonUtils.readFileReturnFirstLine("report.txt");
-            System.out.println(pubkey);
+            String senddata = in.readLine();
+            System.out.printf("server replied:  %s\n", senddata);
 
-            //unmarshal the result data that sgx send to us
-            ComputeResult result = gson.fromJson(compute_json, ComputeResult.class);
-
-            SGXReport sgxRep = new SGXReport();
-            sgxRep.setHmacString(hash);
-            sgxRep.setPubkey(pubkey);
-            sgxRep.setReport(report);
-
-            String sgxJson = gson.toJson(sgxRep);
-            System.out.println(sgxJson);
-
-            //recompute genHMAC and verify it
-            String genHMAC = HMAC_SHA1.genHMAC(compute_json, pubkey);
-            if (genHMAC.equals(sgxRep.getHmacString())){
-                System.out.println("successed to verify hmac");
-            }else{
-                System.out.println("failed to verify hmac");
-            }
-
-            out.close();
-            in.close();
-        } catch (Exception e) {
-            System.out.println(e.toString());
-            System.exit(0);
+        }catch (Exception e){
+            System.out.println(e.fillInStackTrace());
         }
     }
-
 
     public static int sendData(BufferedReader in,OutputStream out){
         try{
@@ -108,6 +76,7 @@ public class MioRaClientJavaApplication {
 
                 String rsp = in.readLine();
                 if(rsp.equals("success")){
+                    System.out.printf("the %d data success\n",i);
                 }else{
                     return -1;
                 }
@@ -118,27 +87,6 @@ public class MioRaClientJavaApplication {
             return -1;
         }
 
-    }
-
-    public static void verifyMioServer(){
-        Gson gson = new Gson();
-        System.out.println("Starting mio-client-java");
-
-        try {
-            SSLContext context = SSLContext.getInstance("TLS");
-            MioCertVerifer mioCertVerifier = new MioCertVerifer();
-            context.init(null, mioCertVerifier.trustAllCerts, new java.security.SecureRandom());
-
-            SSLSocketFactory sslFactory = context.getSocketFactory();
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslFactory);
-
-            AppClient appClient = new AppClient("https", "localhost", 8443);
-            System.out.println(appClient.request("GET", "/", new HashMap<>()));
-
-            System.out.println("send data by mio channel");
-        }catch (Exception e){
-            System.out.println(e.fillInStackTrace());
-        }
     }
 }
 
