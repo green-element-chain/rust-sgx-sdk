@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import org.rustsgx.mioraclientjava.bean.ComputeResult;
 import org.rustsgx.mioraclientjava.bean.Person;
 import org.rustsgx.mioraclientjava.bean.SGXReport;
+import org.rustsgx.mioraclientjava.miocommun.AppClient;
+import org.rustsgx.mioraclientjava.miocommun.MioCertVerifer;
 import org.rustsgx.mioraclientjava.raverify.CommonUtils;
 import org.rustsgx.mioraclientjava.raverify.HMAC_SHA1;
 import org.rustsgx.mioraclientjava.raverify.SgxCertVerifier;
@@ -13,45 +15,15 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.Socket;
 import java.security.*;
+import java.util.HashMap;
 
 @SpringBootApplication
 public class MioRaClientJavaApplication {
 
     public static void main(String[] args) {
         verifyQuoteReport();
-    }
 
-    public static int sendData(BufferedReader in,OutputStream out){
-        try{
-            Gson gson = new Gson();
-            for (int i=0;i<10;i++){
-                Person request = new Person();
-                if(i==9){
-                    request.setAge(i);
-                    request.setCity("City"+Integer.toString(i));
-                    request.setStreet("Street"+Integer.toString(i));
-                    request.setSendStatus("end");
-                    out.write(gson.toJson(request).getBytes());
-                }else{
-                    request.setAge(i);
-                    request.setCity("City"+Integer.toString(i));
-                    request.setStreet("Street"+Integer.toString(i));
-                    request.setSendStatus("not end");
-                    out.write(gson.toJson(request).getBytes());
-                }
-
-                String rsp = in.readLine();
-                if(rsp.equals("success")){
-                }else{
-                    return -1;
-                }
-            }
-            return 0;
-        }catch (Exception e){
-            System.out.println(e.toString());
-            return -1;
-        }
-
+        verifyMioServer();
     }
 
     public static void verifyQuoteReport(){
@@ -114,6 +86,60 @@ public class MioRaClientJavaApplication {
         }
     }
 
+
+    public static int sendData(BufferedReader in,OutputStream out){
+        try{
+            Gson gson = new Gson();
+            for (int i=0;i<10;i++){
+                Person request = new Person();
+                if(i==9){
+                    request.setAge(i);
+                    request.setCity("City"+Integer.toString(i));
+                    request.setStreet("Street"+Integer.toString(i));
+                    request.setSendStatus("end");
+                    out.write(gson.toJson(request).getBytes());
+                }else{
+                    request.setAge(i);
+                    request.setCity("City"+Integer.toString(i));
+                    request.setStreet("Street"+Integer.toString(i));
+                    request.setSendStatus("not end");
+                    out.write(gson.toJson(request).getBytes());
+                }
+
+                String rsp = in.readLine();
+                if(rsp.equals("success")){
+                }else{
+                    return -1;
+                }
+            }
+            return 0;
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return -1;
+        }
+
+    }
+
+    public static void verifyMioServer(){
+        Gson gson = new Gson();
+        System.out.println("Starting mio-client-java");
+
+        try {
+            SSLContext context = SSLContext.getInstance("TLS");
+            MioCertVerifer mioCertVerifier = new MioCertVerifer();
+            context.init(null, mioCertVerifier.trustAllCerts, new java.security.SecureRandom());
+
+            SSLSocketFactory sslFactory = context.getSocketFactory();
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslFactory);
+
+            AppClient appClient = new AppClient("https", "localhost", 8443);
+            System.out.println(appClient.request("GET", "/", new HashMap<>()));
+
+            System.out.println("send data by mio channel");
+        }catch (Exception e){
+            System.out.println(e.fillInStackTrace());
+        }
+    }
 }
 
 

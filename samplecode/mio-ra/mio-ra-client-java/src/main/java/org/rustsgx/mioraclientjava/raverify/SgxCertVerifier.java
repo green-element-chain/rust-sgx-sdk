@@ -45,6 +45,9 @@ public class SgxCertVerifier {
                     }
 
                     public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                        System.out.println("cert length");
+                        System.out.println(certs.length);
+
                         CommonUtils.printCert(certs[0].getEncoded());
                         List<Byte> byteArray = new ArrayList<Byte>();
                         for (int i = 0; i < certs[0].getEncoded().length; i++) {

@@ -62,6 +62,8 @@ public class VerifyMraCert {
     }
 
     public static byte[] verifyCert(List<Byte> payload) throws Exception {
+        System.out.println("verifyCert time test");
+
         Base64.Decoder decoder = Base64.getDecoder();
 
         int startIndex = payload.indexOf(CommonUtils.hexToByte("7c"));
