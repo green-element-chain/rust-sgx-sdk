@@ -28,58 +28,54 @@
 
 #![crate_name = "miora"]
 #![crate_type = "staticlib"]
-
 #![allow(dead_code)]
-
 #![cfg_attr(not(target_env = "sgx"), no_std)]
 #![cfg_attr(target_env = "sgx", feature(rustc_private))]
-
 #![warn(unused_extern_crates)]
 
-extern crate sgx_types;
 extern crate sgx_tcrypto;
 extern crate sgx_tse;
+extern crate sgx_types;
 #[cfg(not(target_env = "sgx"))]
 #[macro_use]
 extern crate sgx_tstd as std;
 extern crate sgx_rand;
 
-extern crate rustls;
-extern crate webpki;
-extern crate webpki_roots;
-extern crate itertools;
 extern crate base64;
-extern crate httparse;
-extern crate yasna;
 extern crate bit_vec;
+extern crate chrono;
+extern crate httparse;
+extern crate itertools;
 extern crate mio;
 extern crate num_bigint;
-extern crate chrono;
 extern crate rusthex;
-extern crate serde_json;
+extern crate rustls;
 extern crate serde;
+extern crate serde_json;
+extern crate webpki;
+extern crate webpki_roots;
+extern crate yasna;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate log;
 
-use sgx_types::*;
-use sgx_tse::*;
-use sgx_tcrypto::*;
 use sgx_rand::*;
+use sgx_tcrypto::*;
+use sgx_tse::*;
+use sgx_types::*;
 
-use std::prelude::v1::*;
-use std::sync::Arc;
-use std::net::TcpStream;
-use std::string::String;
-use std::ptr;
-use std::str;
-use std::io::{Write, Read, BufReader};
-use std::untrusted::fs;
-use std::vec::Vec;
 use itertools::Itertools;
 use serde_json::{json, Value};
-
+use std::io::{BufReader, Read, Write};
+use std::net::TcpStream;
+use std::prelude::v1::*;
+use std::ptr;
+use std::str;
+use std::string::String;
+use std::sync::Arc;
+use std::untrusted::fs;
+use std::vec::Vec;
 
 mod cert;
 mod hex;
@@ -97,58 +93,65 @@ struct ComputeResult {
 struct Person {
     street: String,
     city: String,
-    sendStatus:String,
+    sendStatus: String,
     age: u8,
 }
 
-pub const DEV_HOSTNAME:&'static str = "test-as.sgx.trustedservices.intel.com";
+pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
 //pub const PROD_HOSTNAME:&'static str = "as.sgx.trustedservices.intel.com";
-pub const SIGRL_SUFFIX:&'static str = "/attestation/sgx/v3/sigrl/";
-pub const REPORT_SUFFIX:&'static str = "/attestation/sgx/v3/report";
+pub const SIGRL_SUFFIX: &'static str = "/attestation/sgx/v3/sigrl/";
+pub const REPORT_SUFFIX: &'static str = "/attestation/sgx/v3/report";
 
 extern "C" {
-    pub fn ocall_sgx_init_quote ( ret_val : *mut sgx_status_t,
-                  ret_ti  : *mut sgx_target_info_t,
-                  ret_gid : *mut sgx_epid_group_id_t) -> sgx_status_t;
-    pub fn ocall_get_ias_socket ( ret_val : *mut sgx_status_t,
-                  ret_fd  : *mut i32) -> sgx_status_t;
-    pub fn ocall_get_quote (ret_val            : *mut sgx_status_t,
-                p_sigrl            : *const u8,
-                sigrl_len          : u32,
-                p_report           : *const sgx_report_t,
-                quote_type         : sgx_quote_sign_type_t,
-                p_spid             : *const sgx_spid_t,
-                p_nonce            : *const sgx_quote_nonce_t,
-                p_qe_report        : *mut sgx_report_t,
-                p_quote            : *mut u8,
-                maxlen             : u32,
-                p_quote_len        : *mut u32) -> sgx_status_t;
+    pub fn ocall_sgx_init_quote(
+        ret_val: *mut sgx_status_t,
+        ret_ti: *mut sgx_target_info_t,
+        ret_gid: *mut sgx_epid_group_id_t,
+    ) -> sgx_status_t;
+    pub fn ocall_get_ias_socket(ret_val: *mut sgx_status_t, ret_fd: *mut i32) -> sgx_status_t;
+    pub fn ocall_get_quote(
+        ret_val: *mut sgx_status_t,
+        p_sigrl: *const u8,
+        sigrl_len: u32,
+        p_report: *const sgx_report_t,
+        quote_type: sgx_quote_sign_type_t,
+        p_spid: *const sgx_spid_t,
+        p_nonce: *const sgx_quote_nonce_t,
+        p_qe_report: *mut sgx_report_t,
+        p_quote: *mut u8,
+        maxlen: u32,
+        p_quote_len: *mut u32,
+    ) -> sgx_status_t;
 }
 
-
-fn parse_response_attn_report(resp : &[u8]) -> (String, String, String){
+fn parse_response_attn_report(resp: &[u8]) -> (String, String, String) {
     println!("parse_response_attn_report");
     let mut headers = [httparse::EMPTY_HEADER; 16];
-    let mut respp   = httparse::Response::new(&mut headers);
+    let mut respp = httparse::Response::new(&mut headers);
     let result = respp.parse(resp);
     println!("parse result {:?}", result);
 
-    let msg : &'static str;
+    let msg: &'static str;
 
     match respp.code {
         Some(200) => msg = "OK Operation Successful",
         Some(401) => msg = "Unauthorized Failed to authenticate or authorize request.",
         Some(404) => msg = "Not Found GID does not refer to a valid EPID group ID.",
         Some(500) => msg = "Internal error occurred",
-        Some(503) => msg = "Service is currently not able to process the request (due to
+        Some(503) => {
+            msg = "Service is currently not able to process the request (due to
             a temporary overloading or maintenance). This is a
             temporary state – the same request can be repeated after
-            some time. ",
-        _ => {println!("DBG:{}", respp.code.unwrap()); msg = "Unknown error occured"},
+            some time. "
+        }
+        _ => {
+            println!("DBG:{}", respp.code.unwrap());
+            msg = "Unknown error occured"
+        }
     }
 
     println!("{}", msg);
-    let mut len_num : u32 = 0;
+    let mut len_num: u32 = 0;
 
     let mut sig = String::new();
     let mut cert = String::new();
@@ -157,14 +160,16 @@ fn parse_response_attn_report(resp : &[u8]) -> (String, String, String){
     for i in 0..respp.headers.len() {
         let h = respp.headers[i];
         //println!("{} : {}", h.name, str::from_utf8(h.value).unwrap());
-        match h.name{
+        match h.name {
             "content-length" => {
                 let len_str = String::from_utf8(h.value.to_vec()).unwrap();
                 len_num = len_str.parse::<u32>().unwrap();
                 println!("content length = {}", len_num);
             }
             "x-iasreport-signature" => sig = str::from_utf8(h.value).unwrap().to_string(),
-            "x-iasreport-signing-certificate" => cert = str::from_utf8(h.value).unwrap().to_string(),
+            "x-iasreport-signing-certificate" => {
+                cert = str::from_utf8(h.value).unwrap().to_string()
+            }
             _ => (),
         }
     }
@@ -186,31 +191,32 @@ fn parse_response_attn_report(resp : &[u8]) -> (String, String, String){
     (attn_report, sig, sig_cert)
 }
 
-
-fn parse_response_sigrl(resp : &[u8]) -> Vec<u8> {
+fn parse_response_sigrl(resp: &[u8]) -> Vec<u8> {
     println!("parse_response_sigrl");
     let mut headers = [httparse::EMPTY_HEADER; 16];
-    let mut respp   = httparse::Response::new(&mut headers);
+    let mut respp = httparse::Response::new(&mut headers);
     let result = respp.parse(resp);
     println!("parse result {:?}", result);
     println!("parse response{:?}", respp);
 
-    let msg : &'static str;
+    let msg: &'static str;
 
     match respp.code {
         Some(200) => msg = "OK Operation Successful",
         Some(401) => msg = "Unauthorized Failed to authenticate or authorize request.",
         Some(404) => msg = "Not Found GID does not refer to a valid EPID group ID.",
         Some(500) => msg = "Internal error occurred",
-        Some(503) => msg = "Service is currently not able to process the request (due to
+        Some(503) => {
+            msg = "Service is currently not able to process the request (due to
             a temporary overloading or maintenance). This is a
             temporary state – the same request can be repeated after
-            some time. ",
+            some time. "
+        }
         _ => msg = "Unknown error occured",
     }
 
     println!("{}", msg);
-    let mut len_num : u32 = 0;
+    let mut len_num: u32 = 0;
 
     for i in 0..respp.headers.len() {
         let h = respp.headers[i];
@@ -236,7 +242,9 @@ fn parse_response_sigrl(resp : &[u8]) -> Vec<u8> {
 pub fn make_ias_client_config() -> rustls::ClientConfig {
     let mut config = rustls::ClientConfig::new();
 
-    config.root_store.add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
+    config
+        .root_store
+        .add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
 
     let certs = load_certs("client.crt");
     let privkey = load_private_key("client.key");
@@ -245,15 +253,14 @@ pub fn make_ias_client_config() -> rustls::ClientConfig {
     config
 }
 
-
-pub fn get_sigrl_from_intel(fd : c_int, gid : u32) -> Vec<u8> {
+pub fn get_sigrl_from_intel(fd: c_int, gid: u32) -> Vec<u8> {
     println!("get_sigrl_from_intel fd = {:?}", fd);
     let config = make_ias_client_config();
 
-    let req = format!("GET {}{:08x} HTTP/1.1\r\nHOST: {}\r\n\r\n",
-                      SIGRL_SUFFIX,
-                      gid,
-                      SIGRL_SUFFIX);
+    let req = format!(
+        "GET {}{:08x} HTTP/1.1\r\nHOST: {}\r\n\r\n",
+        SIGRL_SUFFIX, gid, SIGRL_SUFFIX
+    );
     println!("{}", req);
 
     let dns_name = webpki::DNSNameRef::try_from_ascii_str(DEV_HOSTNAME).unwrap();
@@ -282,7 +289,7 @@ pub fn get_sigrl_from_intel(fd : c_int, gid : u32) -> Vec<u8> {
 }
 
 // TODO: support pse
-pub fn get_report_from_intel(fd : c_int, quote : Vec<u8>) -> (String, String, String) {
+pub fn get_report_from_intel(fd: c_int, quote: Vec<u8>) -> (String, String, String) {
     println!("get_report_from_intel fd = {:?}", fd);
     let config = make_ias_client_config();
     let encoded_quote = base64::encode(&quote[..]);
@@ -316,14 +323,17 @@ pub fn get_report_from_intel(fd : c_int, quote : Vec<u8>) -> (String, String, St
 }
 
 fn as_u32_le(array: &[u8; 4]) -> u32 {
-    ((array[0] as u32) <<  0) +
-    ((array[1] as u32) <<  8) +
-    ((array[2] as u32) << 16) +
-    ((array[3] as u32) << 24)
+    ((array[0] as u32) << 0)
+        + ((array[1] as u32) << 8)
+        + ((array[2] as u32) << 16)
+        + ((array[3] as u32) << 24)
 }
 
 #[allow(const_err)]
-pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quote_sign_type_t) -> Result<(String, String, String), sgx_status_t> {
+pub fn create_attestation_report(
+    pub_k: &sgx_ec256_public_t,
+    sign_type: sgx_quote_sign_type_t,
+) -> Result<(String, String, String), sgx_status_t> {
     // Workflow:
     // (1) ocall to get the target_info structure (ti) and epid group id (eg)
     // (1.5) get sigrl
@@ -331,14 +341,16 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     // (3) ocall to sgx_get_quote to generate (*mut sgx-quote_t, uint32_t)
 
     // (1) get ti + eg
-    let mut ti : sgx_target_info_t = sgx_target_info_t::default();
-    let mut eg : sgx_epid_group_id_t = sgx_epid_group_id_t::default();
-    let mut rt : sgx_status_t = sgx_status_t::SGX_ERROR_UNEXPECTED;
+    let mut ti: sgx_target_info_t = sgx_target_info_t::default();
+    let mut eg: sgx_epid_group_id_t = sgx_epid_group_id_t::default();
+    let mut rt: sgx_status_t = sgx_status_t::SGX_ERROR_UNEXPECTED;
 
     let res = unsafe {
-        ocall_sgx_init_quote(&mut rt as *mut sgx_status_t,
-                             &mut ti as *mut sgx_target_info_t,
-                             &mut eg as *mut sgx_epid_group_id_t)
+        ocall_sgx_init_quote(
+            &mut rt as *mut sgx_status_t,
+            &mut ti as *mut sgx_target_info_t,
+            &mut eg as *mut sgx_epid_group_id_t,
+        )
     };
 
     println!("eg = {:?}", eg);
@@ -354,12 +366,10 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     let eg_num = as_u32_le(&eg);
 
     // (1.5) get sigrl
-    let mut ias_sock : i32 = 0;
+    let mut ias_sock: i32 = 0;
 
-    let res = unsafe {
-        ocall_get_ias_socket(&mut rt as *mut sgx_status_t,
-                             &mut ias_sock as *mut i32)
-    };
+    let res =
+        unsafe { ocall_get_ias_socket(&mut rt as *mut sgx_status_t, &mut ias_sock as *mut i32) };
 
     if res != sgx_status_t::SGX_SUCCESS {
         return Err(res);
@@ -372,7 +382,7 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     //println!("Got ias_sock = {}", ias_sock);
 
     // Now sigrl_vec is the revocation list, a vec<u8>
-    let sigrl_vec : Vec<u8> = get_sigrl_from_intel(ias_sock, eg_num);
+    let sigrl_vec: Vec<u8> = get_sigrl_from_intel(ias_sock, eg_num);
 
     // (2) Generate the report
     // Fill ecc256 public key into report_data
@@ -385,24 +395,24 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     report_data.d[32..].clone_from_slice(&pub_k_gy);
 
     let rep = match rsgx_create_report(&ti, &report_data) {
-        Ok(r) =>{
+        Ok(r) => {
             println!("Report creation => success {:?}", r.body.mr_signer.m);
             Some(r)
-        },
-        Err(e) =>{
+        }
+        Err(e) => {
             println!("Report creation => failed {:?}", e);
             None
-        },
+        }
     };
 
-    let mut quote_nonce = sgx_quote_nonce_t { rand : [0;16] };
+    let mut quote_nonce = sgx_quote_nonce_t { rand: [0; 16] };
     let mut os_rng = os::SgxRng::new().unwrap();
     os_rng.fill_bytes(&mut quote_nonce.rand);
     println!("rand finished");
     let mut qe_report = sgx_report_t::default();
-    const RET_QUOTE_BUF_LEN : u32 = 2048;
-    let mut return_quote_buf : [u8; RET_QUOTE_BUF_LEN as usize] = [0;RET_QUOTE_BUF_LEN as usize];
-    let mut quote_len : u32 = 0;
+    const RET_QUOTE_BUF_LEN: u32 = 2048;
+    let mut return_quote_buf: [u8; RET_QUOTE_BUF_LEN as usize] = [0; RET_QUOTE_BUF_LEN as usize];
+    let mut quote_len: u32 = 0;
 
     // (3) Generate the quote
     // Args:
@@ -415,36 +425,37 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     //       7. [out]p_qe_report need further check
     //       8. [out]p_quote
     //       9. quote_size
-    let (p_sigrl, sigrl_len) =
-        if sigrl_vec.len() == 0 {
-            (ptr::null(), 0)
-        } else {
-            (sigrl_vec.as_ptr(), sigrl_vec.len() as u32)
-        };
-    let p_report = (&rep.unwrap()) as * const sgx_report_t;
+    let (p_sigrl, sigrl_len) = if sigrl_vec.len() == 0 {
+        (ptr::null(), 0)
+    } else {
+        (sigrl_vec.as_ptr(), sigrl_vec.len() as u32)
+    };
+    let p_report = (&rep.unwrap()) as *const sgx_report_t;
     let quote_type = sign_type;
 
-    let spid : sgx_spid_t = load_spid("spid.txt");
+    let spid: sgx_spid_t = load_spid("spid.txt");
 
     let p_spid = &spid as *const sgx_spid_t;
-    let p_nonce = &quote_nonce as * const sgx_quote_nonce_t;
+    let p_nonce = &quote_nonce as *const sgx_quote_nonce_t;
     let p_qe_report = &mut qe_report as *mut sgx_report_t;
     let p_quote = return_quote_buf.as_mut_ptr();
     let maxlen = RET_QUOTE_BUF_LEN;
     let p_quote_len = &mut quote_len as *mut u32;
 
     let result = unsafe {
-    ocall_get_quote(&mut rt as *mut sgx_status_t,
-                    p_sigrl,
-                    sigrl_len,
-                    p_report,
-                    quote_type,
-                    p_spid,
-                    p_nonce,
-                    p_qe_report,
-                    p_quote,
-                    maxlen,
-                    p_quote_len)
+        ocall_get_quote(
+            &mut rt as *mut sgx_status_t,
+            p_sigrl,
+            sigrl_len,
+            p_report,
+            quote_type,
+            p_spid,
+            p_nonce,
+            p_qe_report,
+            p_quote,
+            maxlen,
+            p_quote_len,
+        )
     };
 
     if result != sgx_status_t::SGX_SUCCESS {
@@ -462,13 +473,14 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
         Err(x) => {
             println!("rsgx_verify_report failed with {:?}", x);
             return Err(x);
-        },
+        }
     }
 
     // Check if the qe_report is produced on the same platform
-    if ti.mr_enclave.m != qe_report.body.mr_enclave.m ||
-       ti.attributes.flags != qe_report.body.attributes.flags ||
-       ti.attributes.xfrm  != qe_report.body.attributes.xfrm {
+    if ti.mr_enclave.m != qe_report.body.mr_enclave.m
+        || ti.attributes.flags != qe_report.body.attributes.flags
+        || ti.attributes.xfrm != qe_report.body.attributes.xfrm
+    {
         println!("qe_report does not match current target_info!");
         return Err(sgx_status_t::SGX_ERROR_UNEXPECTED);
     }
@@ -490,7 +502,7 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
     // p_qe_report and report.data to confirm the QUOTE has not be modified and
     // is not a replay. It is optional.
 
-    let mut rhs_vec : Vec<u8> = quote_nonce.rand.to_vec();
+    let mut rhs_vec: Vec<u8> = quote_nonce.rand.to_vec();
     rhs_vec.extend(&return_quote_buf[..quote_len as usize]);
     let rhs_hash = rsgx_sha256_slice(&rhs_vec[..]).unwrap();
     let lhs_hash = &qe_report.body.report_data.d[..32];
@@ -503,11 +515,9 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
         return Err(sgx_status_t::SGX_ERROR_UNEXPECTED);
     }
 
-    let quote_vec : Vec<u8> = return_quote_buf[..quote_len as usize].to_vec();
-    let res = unsafe {
-        ocall_get_ias_socket(&mut rt as *mut sgx_status_t,
-                             &mut ias_sock as *mut i32)
-    };
+    let quote_vec: Vec<u8> = return_quote_buf[..quote_len as usize].to_vec();
+    let res =
+        unsafe { ocall_get_ias_socket(&mut rt as *mut sgx_status_t, &mut ias_sock as *mut i32) };
 
     if res != sgx_status_t::SGX_SUCCESS {
         return Err(res);
@@ -524,7 +534,9 @@ pub fn create_attestation_report(pub_k: &sgx_ec256_public_t, sign_type: sgx_quot
 fn load_spid(filename: &str) -> sgx_spid_t {
     let mut spidfile = fs::File::open(filename).expect("cannot open spid file");
     let mut contents = String::new();
-    spidfile.read_to_string(&mut contents).expect("cannot read the spid file");
+    spidfile
+        .read_to_string(&mut contents)
+        .expect("cannot read the spid file");
 
     hex::decode_spid(&contents)
 }
@@ -543,16 +555,14 @@ fn load_certs(filename: &str) -> Vec<rustls::Certificate> {
 
 fn load_private_key(filename: &str) -> rustls::PrivateKey {
     let rsa_keys = {
-        let keyfile = fs::File::open(filename)
-            .expect("cannot open private key file");
+        let keyfile = fs::File::open(filename).expect("cannot open private key file");
         let mut reader = BufReader::new(keyfile);
         rustls::internal::pemfile::rsa_private_keys(&mut reader)
             .expect("file contains invalid rsa private key")
     };
 
     let pkcs8_keys = {
-        let keyfile = fs::File::open(filename)
-            .expect("cannot open private key file");
+        let keyfile = fs::File::open(filename).expect("cannot open private key file");
         let mut reader = BufReader::new(keyfile);
         rustls::internal::pemfile::pkcs8_private_keys(&mut reader)
             .expect("file contains invalid pkcs8 private key (encrypted keys not supported)")
@@ -567,7 +577,7 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
 }
 
 #[no_mangle]
-pub extern "C" fn run_server( sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
+pub extern "C" fn run_server(sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
     // Generate Keypair
     let ecc_handle = SgxEccHandle::new();
     let _result = ecc_handle.open();
@@ -607,93 +617,7 @@ pub extern "C" fn run_server( sign_type: sgx_quote_sign_type_t) -> sgx_status_t 
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
 
-//    cfg.set_single_cert_with_ocsp_and_sct(certs, privkey, vec![], vec![]).unwrap();
-//
-//
-//    let mut sess = rustls::ServerSession::new(&Arc::new(cfg));
-//    let mut conn = TcpStream::new(socket_fd).unwrap();
-//
-//    let mut tls = rustls::Stream::new(&mut sess, &mut conn);
-//    let mut inputstr ;
-//    let mut plaintext = [0u8;1024]; //Vec::new();
-//    let mut persons = Vec::new();
-//    let mut jsonstr = String::new();
-//    let mut json_str;
-//
-//    loop {
-//        plaintext = [0u8;1024]; //Vec::new();
-//        match tls.read(&mut plaintext) {
-//            Ok(_) => {
-//                inputstr = str::from_utf8(&plaintext).unwrap();
-//            }
-//            Err(e) => {
-//                println!("Error in read_to_end: {:?}", e);
-//                panic!("");
-//            }
-//        };
-//        // length of inputstr == length of plaintext
-//        // we should slice the json from it.
-//        let byte = inputstr.as_bytes();
-//        let mut json_size = 0;
-//        for i in 0..inputstr.len() {
-//            let byte = format!("{:02x}",byte[i]);
-//            if byte == "00"{
-//                json_size = i;
-//                break
-//            }
-//        }
-//        json_str = &inputstr[0..json_size];
-//        println!("Client said: {}", json_str);
-//
-//        // compute the result
-//        // Some data structure.
-//        let result :Person = serde_json::from_str(json_str).unwrap();
-//        // Serialize it to a JSON string.
-//        if result.sendStatus == "end"{
-//            persons.push(result);
-//            tls.write("success\n".as_bytes()).unwrap();
-//            break
-//        }else{
-//            persons.push(result);
-//            tls.write("success\n".as_bytes()).unwrap();
-//        }
-//    };
-//
-//    let mut result = ComputeResult {
-//        streets: Vec::new(),
-//        citys: Vec::new(),
-//        age: 0,
-//    };
-//
-//    for i in 0..persons.len(){
-//        result.streets.push(persons.get(i).unwrap().street.clone());
-//        result.citys.push(persons.get(i).unwrap().city.clone());
-//        result.age = result.age+persons.get(i).unwrap().age;
-//    }
-//    println!("result age: {}",result.age);
-//    jsonstr = serde_json::to_string(&result).unwrap();
-//
-//    //compuate hmac
-//    let mut report_data: sgx_report_data_t = sgx_report_data_t::default();
-//    let mut pub_k_gx = pub_k.gx.clone();
-//    pub_k_gx.reverse();
-//    let mut pub_k_gy = pub_k.gy.clone();
-//    pub_k_gy.reverse();
-//    report_data.d[..32].clone_from_slice(&pub_k_gx);
-//    report_data.d[32..].clone_from_slice(&pub_k_gy);
-//
-//    let req = format!("{:02x}",
-//                      &report_data.d.iter().format(""));
-//    let mut hash = hmac_sha1::hmac_sha1(req.as_bytes(), jsonstr.as_bytes());
-//
-//    //send the data
-//    jsonstr.push_str("\n");
-//    tls.write(jsonstr.as_bytes()).unwrap();
-//
-//    hash.push_str("\n");
-//    tls.write(hash.as_bytes()).unwrap();
-
-    mio_server::run_mioserver(mio_cert.clone(),mio_pk.clone());
+    mio_server::run_mioserver(mio_cert.clone(), mio_pk.clone());
 
     sgx_status_t::SGX_SUCCESS
 }

@@ -1,5 +1,5 @@
-use std::prelude::v1::String;
 use rusthex::encode;
+use std::prelude::v1::String;
 
 // define hash constants
 pub const SHA1_DIGEST_BYTES: usize = 20;
@@ -9,7 +9,7 @@ pub fn hmac_sha1(key: &[u8], message: &[u8]) -> String {
     // set constants for HMAC
     let inner_pad_byte: u8 = 0x36;
     let outer_pad_byte: u8 = 0x5c;
-    let key_pad_byte:   u8 = 0x00;
+    let key_pad_byte: u8 = 0x00;
 
     // instantiate internal structures
     let mut sha1_ctx = sha1::Sha1::new();

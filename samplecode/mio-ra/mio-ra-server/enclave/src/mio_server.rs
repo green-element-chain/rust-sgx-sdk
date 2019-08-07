@@ -1,13 +1,13 @@
-use std::prelude::v1::*;
-use std::untrusted::fs;
-use std::vec::Vec;
+use mio::net::{TcpListener, TcpStream};
+use rustls::{NoClientAuth, ServerConfig, Session};
 use std::collections::HashMap;
-use std::io::{self, Write, Read, BufReader};
+use std::io::{self, BufReader, Read, Write};
 use std::net;
 use std::net::Shutdown;
+use std::prelude::v1::*;
 use std::sync::Arc;
-use rustls::{Session, NoClientAuth, ServerConfig};
-use mio::net::{TcpListener, TcpStream};
+use std::untrusted::fs;
+use std::vec::Vec;
 use Person;
 
 // Token for our listening socket.
@@ -59,7 +59,8 @@ impl TlsServer {
                 let token = mio::Token(self.next_id);
                 self.next_id += 1;
 
-                self.connections.insert(token, Connection::new(socket, token, mode, tls_session));
+                self.connections
+                    .insert(token, Connection::new(socket, token, mode, tls_session));
                 self.connections[&token].register(poll);
                 true
             }
@@ -74,10 +75,7 @@ impl TlsServer {
         let token = event.token();
 
         if self.connections.contains_key(&token) {
-            self.connections
-                .get_mut(&token)
-                .unwrap()
-                .ready(poll, event);
+            self.connections.get_mut(&token).unwrap().ready(poll, event);
 
             if self.connections[&token].is_closed() {
                 self.connections.remove(&token);
@@ -130,11 +128,12 @@ fn try_read(r: io::Result<usize>) -> io::Result<Option<usize>> {
 }
 
 impl Connection {
-    fn new(socket: TcpStream,
-           token: mio::Token,
-           mode: ServerMode,
-           tls_session: rustls::ServerSession)
-           -> Connection {
+    fn new(
+        socket: TcpStream,
+        token: mio::Token,
+        mode: ServerMode,
+        tls_session: rustls::ServerSession,
+    ) -> Connection {
         let back = open_back(&mode);
         Connection {
             socket,
@@ -228,17 +227,16 @@ impl Connection {
             debug!("plaintext read {:?}", buf.len());
             self.incoming_plaintext(&buf);
 
-            let result :Person = serde_json::from_str(inputstr).unwrap();
-            if result.sendStatus == "end"{
+            let result: Person = serde_json::from_str(inputstr).unwrap();
+            if result.sendStatus == "end" {
                 persons.push(result);
                 self.tls_session.write("success\n".as_bytes()).unwrap();
                 self.tls_session.send_close_notify();
-            }else{
+            } else {
                 persons.push(result);
                 self.tls_session.write("success\n".as_bytes()).unwrap();
             }
-
-        }else{
+        } else {
             println!("buf is empty");
         }
     }
@@ -295,9 +293,7 @@ impl Connection {
     fn send_http_response_once(&mut self) {
         let response = b"HTTP/1.0 200 OK\r\nConnection: close\r\n\r\nHello world from server\r\n";
         if !self.sent_http_response {
-            self.tls_session
-                .write_all(response)
-                .unwrap();
+            self.tls_session.write_all(response).unwrap();
             self.sent_http_response = true;
             self.tls_session.send_close_notify();
             println!("Returned to client successfully!");
@@ -314,34 +310,42 @@ impl Connection {
     }
 
     fn register(&self, poll: &mut mio::Poll) {
-        poll.register(&self.socket,
-                      self.token,
-                      self.event_set(),
-                      mio::PollOpt::level() | mio::PollOpt::oneshot())
-            .unwrap();
+        poll.register(
+            &self.socket,
+            self.token,
+            self.event_set(),
+            mio::PollOpt::level() | mio::PollOpt::oneshot(),
+        )
+        .unwrap();
 
         if self.back.is_some() {
-            poll.register(self.back.as_ref().unwrap(),
-                          self.token,
-                          mio::Ready::readable(),
-                          mio::PollOpt::level() | mio::PollOpt::oneshot())
-                .unwrap();
+            poll.register(
+                self.back.as_ref().unwrap(),
+                self.token,
+                mio::Ready::readable(),
+                mio::PollOpt::level() | mio::PollOpt::oneshot(),
+            )
+            .unwrap();
         }
     }
 
     fn reregister(&self, poll: &mut mio::Poll) {
-        poll.reregister(&self.socket,
-                        self.token,
-                        self.event_set(),
-                        mio::PollOpt::level() | mio::PollOpt::oneshot())
-            .unwrap();
+        poll.reregister(
+            &self.socket,
+            self.token,
+            self.event_set(),
+            mio::PollOpt::level() | mio::PollOpt::oneshot(),
+        )
+        .unwrap();
 
         if self.back.is_some() {
-            poll.reregister(self.back.as_ref().unwrap(),
-                            self.token,
-                            mio::Ready::readable(),
-                            mio::PollOpt::level() | mio::PollOpt::oneshot())
-                .unwrap();
+            poll.reregister(
+                self.back.as_ref().unwrap(),
+                self.token,
+                mio::Ready::readable(),
+                mio::PollOpt::level() | mio::PollOpt::oneshot(),
+            )
+            .unwrap();
         }
     }
 
@@ -365,43 +369,46 @@ impl Connection {
     }
 }
 
-
-fn make_config(cert: Vec<rustls::Certificate>, key: rustls::PrivateKey) -> Arc<rustls::ServerConfig> {
-
+fn make_config(
+    cert: Vec<rustls::Certificate>,
+    key: rustls::PrivateKey,
+) -> Arc<rustls::ServerConfig> {
     let mut config = rustls::ServerConfig::new(NoClientAuth::new());
 
-    config.set_single_cert_with_ocsp_and_sct(cert, key, vec![], vec![]).unwrap();
+    config
+        .set_single_cert_with_ocsp_and_sct(cert, key, vec![], vec![])
+        .unwrap();
 
     Arc::new(config)
 }
 
-pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey){
+pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey) {
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
     let cert = "end.fullchain";
     let key = "end.rsa";
     let mode = ServerMode::Echo;
-//    let mode = ServerMode::Http;
+    //    let mode = ServerMode::Http;
 
     let config = make_config(mio_cert, mio_key);
 
     let listener = TcpListener::bind(&addr).expect("cannot listen on port");
-    let mut poll = mio::Poll::new()
-        .unwrap();
+    let mut poll = mio::Poll::new().unwrap();
 
-    poll.register(&listener,
-                  LISTENER,
-                  mio::Ready::readable(),
-                  mio::PollOpt::level())
-        .unwrap();
+    poll.register(
+        &listener,
+        LISTENER,
+        mio::Ready::readable(),
+        mio::PollOpt::level(),
+    )
+    .unwrap();
 
     let mut tlsserv = TlsServer::new(listener, mode, config);
 
-    println!("\n\n\n\nYou are staring : {}","mio_server");
+    println!("\n\n\n\nYou are staring : {}", "mio_server");
 
     let mut events = mio::Events::with_capacity(256);
     'outer: loop {
-        poll.poll(&mut events, None)
-            .unwrap();
+        poll.poll(&mut events, None).unwrap();
 
         for event in events.iter() {
             match event.token() {
@@ -410,9 +417,8 @@ pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::Privat
                         break 'outer;
                     }
                 }
-                _ => tlsserv.conn_event(&mut poll, &event)
+                _ => tlsserv.conn_event(&mut poll, &event),
             }
         }
     }
-
 }
