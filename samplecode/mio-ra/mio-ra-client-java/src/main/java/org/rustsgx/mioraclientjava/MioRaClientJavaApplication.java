@@ -1,11 +1,7 @@
 package org.rustsgx.mioraclientjava;
 
 import com.google.gson.Gson;
-import org.rustsgx.mioraclientjava.bean.ComputeResult;
 import org.rustsgx.mioraclientjava.bean.Person;
-import org.rustsgx.mioraclientjava.bean.SGXReport;
-import org.rustsgx.mioraclientjava.raverify.CommonUtils;
-import org.rustsgx.mioraclientjava.raverify.HMAC_SHA1;
 import org.rustsgx.mioraclientjava.raverify.SgxCertVerifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -45,7 +41,6 @@ public class MioRaClientJavaApplication {
             }
 
             System.out.println("end senddata");
-
 
             String senddata = in.readLine();
             System.out.printf("server replied:  %s\n", senddata);
@@ -89,5 +84,3 @@ public class MioRaClientJavaApplication {
 
     }
 }
-
-
