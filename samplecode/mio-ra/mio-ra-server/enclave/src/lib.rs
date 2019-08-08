@@ -95,7 +95,7 @@ struct Person {
     city: String,
     sendStatus: String,
     age: u8,
-    clientId:u8,
+    clientId: u8,
 }
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";

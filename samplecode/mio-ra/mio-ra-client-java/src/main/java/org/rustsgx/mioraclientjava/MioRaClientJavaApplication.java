@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class MioRaClientJavaApplication {
 
     public static void main(String[] args) throws Exception{
-        int threadCount = 30;
+        int threadCount = 50;
         ExecutorService service = Executors.newFixedThreadPool(threadCount);
         for (int i = 0; i < threadCount; i++) {
             service.execute(() -> {
@@ -58,7 +58,6 @@ public class MioRaClientJavaApplication {
 
             int status = sendData(in,out,clientID);
             if (status == -1){
-                System.exit(0);
             }
 
             System.out.println("end senddata");
@@ -109,7 +108,6 @@ public class MioRaClientJavaApplication {
             if(rsp.equals("success")){
                 System.out.printf("the %d: %d data success\n",clientID,i);
             }else{
-
                 return -1;
             }
         }catch (Exception e){

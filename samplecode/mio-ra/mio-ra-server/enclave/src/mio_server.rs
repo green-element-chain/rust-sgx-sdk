@@ -51,8 +51,12 @@ impl TlsServer {
     fn accept(&mut self, poll: &mut mio::Poll) -> bool {
         match self.server.accept() {
             Ok((socket, addr)) => {
-                debug!("Accepting new connection from {:?}", addr);
+                if self.connections.len()>40{
+                    socket.shutdown(Shutdown::Both);
+                    return true
+                }
 
+                println!("Accepting new connection from {:?}", addr);
                 let tls_session = rustls::ServerSession::new(&self.tls_config);
                 let mode = self.mode.clone();
 
@@ -81,6 +85,7 @@ impl TlsServer {
                 self.connections.remove(&token);
             }
         }
+        println!("number of connections is: {}", self.connections.len());
     }
 }
 
@@ -162,11 +167,19 @@ impl Connection {
             self.do_tls_write();
         }
 
-        if self.closing && !self.tls_session.wants_write() {
+        println!("self closed: {}", self.closed);
+        println!("self closing: {}", self.closing);
+        println!(
+            "self tls_session.wants_write: {}",
+            !self.tls_session.wants_write()
+        );
+
+        if self.closing && !self.tls_session.wants_write(){
             let _ = self.socket.shutdown(Shutdown::Both);
             self.close_back();
             self.closed = true;
         } else {
+            println!("reregister");
             self.reregister(poll);
         }
     }
@@ -222,9 +235,9 @@ impl Connection {
         }
 
         if !buf.is_empty() {
-            println!("{:?}",buf);
+            println!("{:?}", buf);
             let inputstr = std::str::from_utf8(&buf).unwrap();
-            println!("{}",inputstr);
+            println!("{}", inputstr);
             debug!("plaintext read {:?}", buf.len());
             self.incoming_plaintext(&buf);
         } else {
@@ -408,10 +421,12 @@ pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::Privat
     let mut events = mio::Events::with_capacity(256);
     'outer: loop {
         poll.poll(&mut events, None).unwrap();
-
         for event in events.iter() {
             match event.token() {
                 LISTENER => {
+                    if tlsserv.connections.len() > 30 {
+                        continue;
+                    }
                     if !tlsserv.accept(&mut poll) {
                         break 'outer;
                     }
