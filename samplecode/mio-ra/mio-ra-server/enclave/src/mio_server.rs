@@ -220,24 +220,14 @@ impl Connection {
             self.closing = true;
             return;
         }
-        let mut persons = Vec::new();
 
         if !buf.is_empty() {
+            println!("{:?}",buf);
             let inputstr = std::str::from_utf8(&buf).unwrap();
+            println!("{}",inputstr);
             debug!("plaintext read {:?}", buf.len());
             self.incoming_plaintext(&buf);
-
-            let result: Person = serde_json::from_str(inputstr).unwrap();
-            if result.sendStatus == "end" {
-                persons.push(result);
-                self.tls_session.write("success\n".as_bytes()).unwrap();
-                self.tls_session.send_close_notify();
-            } else {
-                persons.push(result);
-                self.tls_session.write("success\n".as_bytes()).unwrap();
-            }
         } else {
-            println!("buf is empty");
         }
     }
 
@@ -279,7 +269,18 @@ impl Connection {
             ServerMode::Echo => {
                 let inputstr = std::str::from_utf8(buf).unwrap();
                 println!("Client said: {}", inputstr);
-                self.tls_session.write("success\n".as_bytes()).unwrap();
+                let mut persons = Vec::new();
+
+                let result: Person = serde_json::from_str(inputstr).unwrap();
+                if result.sendStatus == "end" {
+                    persons.push(result);
+                    self.tls_session.write("success\n".as_bytes()).unwrap();
+                    self.tls_session.send_close_notify();
+                } else {
+                    let citystring = result.city.clone();
+                    persons.push(result);
+                    self.tls_session.write("success\n".as_bytes()).unwrap();
+                }
             }
             ServerMode::Http => {
                 self.send_http_response_once();
@@ -384,8 +385,6 @@ fn make_config(
 
 pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey) {
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
-    let cert = "end.fullchain";
-    let key = "end.rsa";
     let mode = ServerMode::Echo;
     //    let mode = ServerMode::Http;
 

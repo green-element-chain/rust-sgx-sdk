@@ -9,12 +9,28 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.Socket;
 import java.security.*;
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 public class MioRaClientJavaApplication {
 
-    public static void main(String[] args) {
-        verifyMioServer();
+    public static void main(String[] args) throws Exception{
+        int threadCount = 30;
+        ExecutorService service = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            service.execute(() -> {
+                try {
+                    verifyMioServer();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+        }
+        service.shutdown();
+        service.awaitTermination(10000000, TimeUnit.SECONDS);
     }
 
     public static void verifyMioServer(){
@@ -35,22 +51,24 @@ public class MioRaClientJavaApplication {
 
             System.out.println("before senddata");
 
-            int status = sendData(in,out);
+            int max=100,min=1;
+            int ran2 = (int) (Math.random()*(max-min)+min);
+            int clientID = (int)(ran2*1);
+            System.out.printf("clientId is %d\n",clientID);
+
+            int status = sendData(in,out,clientID);
             if (status == -1){
                 System.exit(0);
             }
 
             System.out.println("end senddata");
 
-            String senddata = in.readLine();
-            System.out.printf("server replied:  %s\n", senddata);
-
         }catch (Exception e){
             System.out.println(e.fillInStackTrace());
         }
     }
 
-    public static int sendData(BufferedReader in,OutputStream out){
+    public static int sendData(BufferedReader in,OutputStream out, int clientID){
         try{
             Gson gson = new Gson();
             for (int i=0;i<10;i++){
@@ -60,21 +78,21 @@ public class MioRaClientJavaApplication {
                     request.setCity("City"+Integer.toString(i));
                     request.setStreet("Street"+Integer.toString(i));
                     request.setSendStatus("end");
+                    request.setClientId(clientID);
                     out.write(gson.toJson(request).getBytes());
                 }else{
                     request.setAge(i);
                     request.setCity("City"+Integer.toString(i));
                     request.setStreet("Street"+Integer.toString(i));
                     request.setSendStatus("not end");
+                    request.setClientId(clientID);
                     out.write(gson.toJson(request).getBytes());
                 }
+                System.out.println(gson.toJson(request));
+                //every write need wait data, if not it will make parsing error of json in sgx
+                int getStatus = getReturnData(in,i,clientID);
+                System.out.println(getStatus);
 
-                String rsp = in.readLine();
-                if(rsp.equals("success")){
-                    System.out.printf("the %d data success\n",i);
-                }else{
-                    return -1;
-                }
             }
             return 0;
         }catch (Exception e){
@@ -82,5 +100,22 @@ public class MioRaClientJavaApplication {
             return -1;
         }
 
+    }
+
+    public static int getReturnData(BufferedReader in,int i, int clientID){
+        try{
+            String rsp = in.readLine();
+            System.out.println(rsp);
+            if(rsp.equals("success")){
+                System.out.printf("the %d: %d data success\n",clientID,i);
+            }else{
+
+                return -1;
+            }
+        }catch (Exception e){
+            System.out.println(e.fillInStackTrace());
+            return -1;
+        }
+        return 0;
     }
 }

@@ -5,6 +5,7 @@ public class Person {
     private String city;
     private int age;
     private String sendStatus;
+    private int clientId;
 
     public String getStreet() {
         return street;
@@ -16,6 +17,14 @@ public class Person {
 
     public String getCity() {
         return city;
+    }
+
+    public int getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(int clientId) {
+        this.clientId = clientId;
     }
 
     public void setCity(String city) {
@@ -37,4 +46,6 @@ public class Person {
     public void setSendStatus(String sendStatus) {
         this.sendStatus = sendStatus;
     }
+
+
 }
