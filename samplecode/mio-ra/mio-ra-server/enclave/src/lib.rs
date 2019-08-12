@@ -578,7 +578,7 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
 }
 
 #[no_mangle]
-pub extern "C" fn run_server(sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
+pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
     // Generate Keypair
     let ecc_handle = SgxEccHandle::new();
     let _result = ecc_handle.open();
@@ -618,7 +618,7 @@ pub extern "C" fn run_server(sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
 
-    mio_server::run_mioserver(mio_cert.clone(), mio_pk.clone());
+    mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone());
 
     sgx_status_t::SGX_SUCCESS
 }

@@ -44,12 +44,14 @@ use std::path;
 use std::net::{TcpListener, TcpStream, SocketAddr};
 use std::str;
 use std::io::{Read, Write};
+use std::str::FromStr;
 
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";
 
 extern {
-    fn run_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t;
+    fn run_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
+                  max_conn: uint8_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t;
 }
 
 #[no_mangle]
@@ -217,12 +219,17 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
 fn main() {
     let mut args: Vec<_> = env::args().collect();
     let mut sign_type = sgx_quote_sign_type_t::SGX_LINKABLE_SIGNATURE;
+    let mut max_conn = 30;
     args.remove(0);
     while !args.is_empty() {
         match args.remove(0).as_ref() {
             "--unlink" => sign_type = sgx_quote_sign_type_t::SGX_UNLINKABLE_SIGNATURE,
+            "--maxconn" => {
+                max_conn = uint8_t::from_str(args.remove(0).as_ref()).expect("error parsing argument");
+                println!("max connections is: {}",max_conn);
+            }
             _ => {
-                panic!("Only --unlink is accepted");
+                println!("Only --unlink is accepted");
             }
         }
     }
@@ -243,7 +250,7 @@ fn main() {
 
     let mut retval = sgx_status_t::SGX_SUCCESS;
     let result = unsafe {
-        run_server(enclave.geteid(), &mut retval,  sign_type)
+        run_server(enclave.geteid(), &mut retval, max_conn,  sign_type)
     };
     match result {
         sgx_status_t::SGX_SUCCESS => {
@@ -254,15 +261,6 @@ fn main() {
             return;
         }
     }
-
-
-
-//    match listener.accept() {
-//        Ok((socket, addr)) => {
-//
-//        }
-//        Err(e) => println!("couldn't get client: {:?}", e),
-//    }
 
     println!("[+] Done!");
 

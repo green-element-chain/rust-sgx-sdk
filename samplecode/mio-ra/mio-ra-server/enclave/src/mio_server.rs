@@ -9,6 +9,7 @@ use std::sync::Arc;
 use std::untrusted::fs;
 use std::vec::Vec;
 use Person;
+use sgx_types::uint8_t;
 
 // Token for our listening socket.
 const LISTENER: mio::Token = mio::Token(0);
@@ -167,19 +168,11 @@ impl Connection {
             self.do_tls_write();
         }
 
-        println!("self closed: {}", self.closed);
-        println!("self closing: {}", self.closing);
-        println!(
-            "self tls_session.wants_write: {}",
-            !self.tls_session.wants_write()
-        );
-
-        if self.closing && !self.tls_session.wants_write(){
+        if self.closing {
             let _ = self.socket.shutdown(Shutdown::Both);
             self.close_back();
             self.closed = true;
         } else {
-            println!("reregister");
             self.reregister(poll);
         }
     }
@@ -396,7 +389,7 @@ fn make_config(
     Arc::new(config)
 }
 
-pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey) {
+pub fn run_mioserver(max_conn: uint8_t, mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey) {
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
     let mode = ServerMode::Echo;
     //    let mode = ServerMode::Http;
@@ -424,7 +417,7 @@ pub fn run_mioserver(mio_cert: Vec<rustls::Certificate>, mio_key: rustls::Privat
         for event in events.iter() {
             match event.token() {
                 LISTENER => {
-                    if tlsserv.connections.len() > 30 {
+                    if tlsserv.connections.len() as u8 == max_conn {
                         continue;
                     }
                     if !tlsserv.accept(&mut poll) {
