@@ -1,6 +1,6 @@
 package org.rustsgx.mioraclientjava.bean;
 
-public class Person {
+public class Student {
     private String street;
     private String city;
     private int age;
@@ -47,5 +47,11 @@ public class Person {
         this.sendStatus = sendStatus;
     }
 
-
+    public void constructStudent(int i,String sendStatus,int clientId){
+        this.setAge(i);
+        this.setCity("City"+Integer.toString(i));
+        this.setStreet("Street"+Integer.toString(i));
+        this.setSendStatus(sendStatus);
+        this.setClientId(clientId);
+    }
 }

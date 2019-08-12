@@ -1,5 +1,7 @@
+use bean::Teacher;
 use mio::net::{TcpListener, TcpStream};
 use rustls::{NoClientAuth, ServerConfig, Session};
+use sgx_types::uint8_t;
 use std::collections::HashMap;
 use std::io::{self, BufReader, Read, Write};
 use std::net;
@@ -8,8 +10,6 @@ use std::prelude::v1::*;
 use std::sync::Arc;
 use std::untrusted::fs;
 use std::vec::Vec;
-use Person;
-use sgx_types::uint8_t;
 
 // Token for our listening socket.
 const LISTENER: mio::Token = mio::Token(0);
@@ -52,9 +52,9 @@ impl TlsServer {
     fn accept(&mut self, poll: &mut mio::Poll) -> bool {
         match self.server.accept() {
             Ok((socket, addr)) => {
-                if self.connections.len()>40{
+                if self.connections.len() > 40 {
                     socket.shutdown(Shutdown::Both);
-                    return true
+                    return true;
                 }
 
                 println!("Accepting new connection from {:?}", addr);
@@ -228,9 +228,7 @@ impl Connection {
         }
 
         if !buf.is_empty() {
-            println!("{:?}", buf);
             let inputstr = std::str::from_utf8(&buf).unwrap();
-            println!("{}", inputstr);
             debug!("plaintext read {:?}", buf.len());
             self.incoming_plaintext(&buf);
         } else {
@@ -275,16 +273,16 @@ impl Connection {
             ServerMode::Echo => {
                 let inputstr = std::str::from_utf8(buf).unwrap();
                 println!("Client said: {}", inputstr);
-                let mut persons = Vec::new();
+                let mut teachers = Vec::new();
 
-                let result: Person = serde_json::from_str(inputstr).unwrap();
-                if result.sendStatus == "end" {
-                    persons.push(result);
+                let result: Teacher = serde_json::from_str(inputstr).unwrap();
+                if result.send_status == "end" {
+                    teachers.push(result);
                     self.tls_session.write("success\n".as_bytes()).unwrap();
                     self.tls_session.send_close_notify();
                 } else {
                     let citystring = result.city.clone();
-                    persons.push(result);
+                    teachers.push(result);
                     self.tls_session.write("success\n".as_bytes()).unwrap();
                 }
             }
@@ -389,7 +387,11 @@ fn make_config(
     Arc::new(config)
 }
 
-pub fn run_mioserver(max_conn: uint8_t, mio_cert: Vec<rustls::Certificate>, mio_key: rustls::PrivateKey) {
+pub fn run_mioserver(
+    max_conn: uint8_t,
+    mio_cert: Vec<rustls::Certificate>,
+    mio_key: rustls::PrivateKey,
+) {
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
     let mode = ServerMode::Echo;
     //    let mode = ServerMode::Http;

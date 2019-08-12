@@ -77,26 +77,11 @@ use std::sync::Arc;
 use std::untrusted::fs;
 use std::vec::Vec;
 
+mod bean;
 mod cert;
 mod hex;
 mod hmac_sha1;
 mod mio_server;
-
-#[derive(Serialize, Deserialize)]
-struct ComputeResult {
-    streets: Vec<String>,
-    citys: Vec<String>,
-    age: u8,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Person {
-    street: String,
-    city: String,
-    sendStatus: String,
-    age: u8,
-    clientId: u8,
-}
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
 //pub const PROD_HOSTNAME:&'static str = "as.sgx.trustedservices.intel.com";

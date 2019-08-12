@@ -1,7 +1,9 @@
 package org.rustsgx.mioraclientjava;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import org.rustsgx.mioraclientjava.bean.Person;
+import com.google.gson.GsonBuilder;
+import org.rustsgx.mioraclientjava.bean.Teacher;
 import org.rustsgx.mioraclientjava.raverify.SgxCertVerifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -69,9 +71,11 @@ public class MioRaClientJavaApplication {
 
     public static int sendData(BufferedReader in,OutputStream out, int clientID){
         try{
-            Gson gson = new Gson();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+            Gson gson = gsonBuilder.create();
             for (int i=0;i<10;i++){
-                Person request = new Person();
+                Teacher request = new Teacher();
                 if(i==9){
                     request.setAge(i);
                     request.setCity("City"+Integer.toString(i));
