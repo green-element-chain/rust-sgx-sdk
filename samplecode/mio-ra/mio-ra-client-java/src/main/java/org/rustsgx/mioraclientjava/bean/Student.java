@@ -6,6 +6,9 @@ public class Student {
     private int age;
     private String sendStatus;
     private int clientId;
+    private String dataType;
+    private String ops;
+    private int index;
 
     public String getStreet() {
         return street;
@@ -47,11 +50,38 @@ public class Student {
         this.sendStatus = sendStatus;
     }
 
-    public void constructStudent(int i,String sendStatus,int clientId){
+    public String getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    public String getOps() {
+        return ops;
+    }
+
+    public void setOps(String ops) {
+        this.ops = ops;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public void constructStudent(int i, String sendStatus, int clientId){
         this.setAge(i);
         this.setCity("City"+Integer.toString(i));
         this.setStreet("Street"+Integer.toString(i));
         this.setSendStatus(sendStatus);
         this.setClientId(clientId);
+        this.setDataType("energy_student");
+        this.setOps("insert");
+        this.setIndex(i);
     }
 }

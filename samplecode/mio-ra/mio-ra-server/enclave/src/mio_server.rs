@@ -1,4 +1,4 @@
-use bean::Teacher;
+use bean::{Student, Teacher};
 use mio::net::{TcpListener, TcpStream};
 use rustls::{NoClientAuth, ServerConfig, Session};
 use sgx_types::uint8_t;
@@ -76,11 +76,19 @@ impl TlsServer {
         }
     }
 
-    fn conn_event(&mut self, poll: &mut mio::Poll, event: &mio::event::Event) {
+    fn conn_event(
+        &mut self,
+        poll: &mut mio::Poll,
+        event: &mio::event::Event,
+        hashmap: &mut HashMap<u32, u8>,
+    ) {
         let token = event.token();
 
         if self.connections.contains_key(&token) {
-            self.connections.get_mut(&token).unwrap().ready(poll, event);
+            self.connections
+                .get_mut(&token)
+                .unwrap()
+                .ready(poll, event, hashmap);
 
             if self.connections[&token].is_closed() {
                 self.connections.remove(&token);
@@ -154,13 +162,18 @@ impl Connection {
     }
 
     /// We're a connection, and we have something to do.
-    fn ready(&mut self, poll: &mut mio::Poll, ev: &mio::event::Event) {
+    fn ready(
+        &mut self,
+        poll: &mut mio::Poll,
+        ev: &mio::event::Event,
+        hashmap: &mut HashMap<u32, u8>,
+    ) {
         // If we're readable: read some TLS.  Then
         // see if that yielded new plaintext.  Then
         // see if the backend is readable too.
         if ev.readiness().is_readable() {
             self.do_tls_read();
-            self.try_plain_read();
+            self.try_plain_read(hashmap);
             self.try_back_read();
         }
 
@@ -216,7 +229,7 @@ impl Connection {
         }
     }
 
-    fn try_plain_read(&mut self) {
+    fn try_plain_read(&mut self, hashmap: &mut HashMap<u32, u8>) {
         // Read and process all available plaintext.
         let mut buf = Vec::new();
 
@@ -230,7 +243,7 @@ impl Connection {
         if !buf.is_empty() {
             let inputstr = std::str::from_utf8(&buf).unwrap();
             debug!("plaintext read {:?}", buf.len());
-            self.incoming_plaintext(&buf);
+            self.incoming_plaintext(&buf, hashmap);
         } else {
         }
     }
@@ -268,22 +281,80 @@ impl Connection {
     }
 
     /// Process some amount of received plaintext.
-    fn incoming_plaintext(&mut self, buf: &[u8]) {
+    fn incoming_plaintext(&mut self, buf: &[u8], hashmap: &mut HashMap<u32, u8>) {
         match self.mode {
             ServerMode::Echo => {
                 let inputstr = std::str::from_utf8(buf).unwrap();
                 println!("Client said: {}", inputstr);
-                let mut teachers = Vec::new();
 
-                let result: Teacher = serde_json::from_str(inputstr).unwrap();
-                if result.send_status == "end" {
-                    teachers.push(result);
-                    self.tls_session.write("success\n".as_bytes()).unwrap();
-                    self.tls_session.send_close_notify();
+                //default is teacher, datatype = 0
+                //student, datatype = 1
+                let mut datatype = 0;
+
+                match inputstr.find("energy_teacher") {
+                    Some(T) => println!("datatype is teacher!"),
+                    _ => {
+                        datatype = 1;
+                        println!("datatype is student!")
+                    }
+                }
+
+                if datatype == 1 {
+                    let result: Student = serde_json::from_str(inputstr).unwrap();
+                    let mut students = Vec::new();
+
+                    let student = result.clone();
+                    if hashmap.contains_key(&student.client_id) {
+                        println!("student id {}", student.client_id);
+                        let mut a = hashmap.get(&student.client_id).unwrap();
+                        let mut value = a + 1;
+                        hashmap.insert(student.client_id, value);
+                    } else {
+                        println!("student id {}", student.client_id);
+                        hashmap.insert(student.client_id, 0);
+                    }
+                    println!(
+                        "Hashmap's value is {}",
+                        hashmap.get(&student.client_id).unwrap()
+                    );
+
+                    if result.send_status == "end" {
+                        students.push(result);
+                        self.tls_session.write("success\n".as_bytes()).unwrap();
+                        self.tls_session.send_close_notify();
+                    } else {
+                        let citystring = result.city.clone();
+                        students.push(result);
+                        self.tls_session.write("success\n".as_bytes()).unwrap();
+                    }
                 } else {
-                    let citystring = result.city.clone();
-                    teachers.push(result);
-                    self.tls_session.write("success\n".as_bytes()).unwrap();
+                    let result: Teacher = serde_json::from_str(inputstr).unwrap();
+                    let mut teachers = Vec::new();
+
+                    let teacher = result.clone();
+                    if hashmap.contains_key(&teacher.client_id) {
+                        println!("teacher id {}", teacher.client_id);
+                        let mut a = hashmap.get(&teacher.client_id).unwrap();
+                        let mut value = a + 1;
+                        hashmap.insert(teacher.client_id, value);
+                    } else {
+                        println!("teacher id {}", teacher.client_id);
+                        hashmap.insert(teacher.client_id, 0);
+                    }
+                    println!(
+                        "Hashmap's value is {}",
+                        hashmap.get(&teacher.client_id).unwrap()
+                    );
+
+                    if result.send_status == "end" {
+                        teachers.push(result);
+                        self.tls_session.write("success\n".as_bytes()).unwrap();
+                        self.tls_session.send_close_notify();
+                    } else {
+                        let citystring = result.city.clone();
+                        teachers.push(result);
+                        self.tls_session.write("success\n".as_bytes()).unwrap();
+                    }
                 }
             }
             ServerMode::Http => {
@@ -413,6 +484,8 @@ pub fn run_mioserver(
 
     println!("\n\n\n\nYou are staring : {}", "mio_server");
 
+    let mut hashmap: HashMap<u32, u8> = HashMap::new();
+
     let mut events = mio::Events::with_capacity(256);
     'outer: loop {
         poll.poll(&mut events, None).unwrap();
@@ -426,7 +499,7 @@ pub fn run_mioserver(
                         break 'outer;
                     }
                 }
-                _ => tlsserv.conn_event(&mut poll, &event),
+                _ => tlsserv.conn_event(&mut poll, &event, &mut hashmap),
             }
         }
     }
