@@ -91,6 +91,8 @@ mod hex;
 mod hmac_sha1;
 mod mio_server;
 mod sqlite;
+mod opening;
+mod typical;
 
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";

@@ -37,9 +37,10 @@ enclave {
     from "sgx_pipe.edl" import *;
     from "sgx_time.edl" import *;
     from "sgx_tstdc.edl" import *;
+    from "sgx_backtrace.edl" import *;
 
     include "sgx_quote.h"
-
+    include "../ocall_types.h" // Need to import some type declartions from stdlib
 
     trusted {
         public sgx_status_t run_server(uint8_t max_conn, sgx_quote_sign_type_t quote_type);
@@ -59,8 +60,31 @@ enclave {
                                        [out, size = maxlen] sgx_quote_t *p_quote,
                                        uint32_t maxlen,
                                        [out] uint32_t* p_quote_len);
-    sgx_status_t ocall_get_update_info([in] sgx_platform_info_t * platformBlob,
+        sgx_status_t ocall_get_update_info([in] sgx_platform_info_t * platformBlob,
                        int32_t enclaveTrusted,
                        [out] sgx_update_info_bit_t * update_info);
+
+        void ocall_println_string([in, string] const char *str);
+        void ocall_print_string([in, string] const char *str);
+        void ocall_print_error([in, string] const char *str);
+
+        int ocall_lstat([in, string] const char *path, [in, out, size=size] struct stat *buf, size_t size) propagate_errno;
+        int ocall_stat([in, string] const char *path, [in, out, size=size] struct stat *buf, size_t size);
+        int ocall_fstat(int fd, [in, out, size=size] struct stat* buf, size_t size);
+        int ocall_ftruncate(int fd, off_t length);
+
+        char* ocall_getcwd([out, size=size] char *buf, size_t size) propagate_errno;
+        int ocall_getpid(void);
+        int ocall_getuid(void);
+        char* ocall_getenv([in, string] const char *name);
+
+        int ocall_open64([in, string] const char *filename, int flags, mode_t mode);
+        int ocall_close(int fd);
+        off_t ocall_lseek64(int fd, off_t offset, int whence) propagate_errno;
+        int ocall_read(int fd, [out, size=count] void *buf, size_t count) propagate_errno;
+        int ocall_write(int fd, [in, size=count] const void *buf, size_t count) propagate_errno;
+        int ocall_fsync(int fd);
+        int ocall_fcntl(int fd, int cmd, [in, size=size] void* arg, size_t size) propagate_errno;
+        int ocall_unlink([in, string] const char *pathname);
     };
 };
