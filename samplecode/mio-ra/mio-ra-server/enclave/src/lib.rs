@@ -67,7 +67,7 @@ use sgx_types::*;
 
 use itertools::Itertools;
 use serde_json::{json, Value};
-use std::io::{BufReader, Read, Write};
+use std::io::{self, BufReader, Read, Write};
 use std::net::TcpStream;
 use std::prelude::v1::*;
 use std::ptr;
@@ -76,6 +76,7 @@ use std::string::String;
 use std::sync::Arc;
 use std::untrusted::fs;
 use std::vec::Vec;
+use std::slice;
 
 mod bean;
 mod cert;
@@ -604,6 +605,37 @@ pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t
     let mut mio_pk = privkey.clone();
 
     mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone());
+
+    sgx_status_t::SGX_SUCCESS
+}
+
+#[no_mangle]
+pub extern "C" fn say_something(some_string: *const u8, some_len: usize) -> sgx_status_t {
+
+    let str_slice = unsafe { slice::from_raw_parts(some_string, some_len) };
+    let _ = io::stdout().write(str_slice);
+
+    // A sample &'static string
+    let rust_raw_string = "This is a in-Enclave ";
+    // An array
+    let word:[u8;4] = [82, 117, 115, 116];
+    // An vector
+    let word_vec:Vec<u8> = vec![32, 115, 116, 114, 105, 110, 103, 33];
+
+    // Construct a string from &'static string
+    let mut hello_string = String::from(rust_raw_string);
+
+    // Iterate on word array
+    for c in word.iter() {
+        hello_string.push(*c as char);
+    }
+
+    // Rust style convertion
+    hello_string += String::from_utf8(word_vec).expect("Invalid UTF-8")
+        .as_str();
+
+    // Ocall to normal world for output
+    println!("{}", &hello_string);
 
     sgx_status_t::SGX_SUCCESS
 }

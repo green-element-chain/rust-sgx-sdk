@@ -43,6 +43,8 @@ enclave {
 
     trusted {
         public sgx_status_t run_server(uint8_t max_conn, sgx_quote_sign_type_t quote_type);
+
+        public sgx_status_t say_something([in, size=len] const uint8_t* some_string, size_t len);
     };
 
     untrusted {
