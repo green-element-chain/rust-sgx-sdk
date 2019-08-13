@@ -249,28 +249,6 @@ fn main() {
         },
     };
 
-
-    let input_string = String::from("This is a normal world string passed into Enclave!\n");
-
-    let mut retval = sgx_status_t::SGX_SUCCESS;
-
-    let result = unsafe {
-        say_something(enclave.geteid(),
-                      &mut retval,
-                      input_string.as_ptr() as * const u8,
-                      input_string.len())
-    };
-
-    match result {
-        sgx_status_t::SGX_SUCCESS => {},
-        _ => {
-            println!("[-] ECALL Enclave Failed {}!", result.as_str());
-            return;
-        }
-    }
-
-    println!("[+] say_something success...");
-
     println!("Running as server...");
     let listener = TcpListener::bind("0.0.0.0:3443").unwrap();
 
