@@ -43,11 +43,7 @@ pub fn opening() {
                 filename = String::from("test.db");
                 ok(Default::default(), dbfile)
             }
-            (_, _) => {
-                let dbfile = "test.db";
-                filename = String::from("test.db");
-                ok(Default::default(), dbfile)
-            }
+            (_, _) => None
         }
     };
 
