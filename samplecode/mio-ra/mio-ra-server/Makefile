@@ -177,4 +177,5 @@ clean:
 	@cd enclave && cargo clean && rm -f Cargo.lock
 	@cd app && cargo clean && rm -f Cargo.lock
 	@rm -f sqlite3/sqlite3.o sqlite3/sqlite3.i sqlite3/ocall_interface.i sqlite3/ocall_interface.o app/ocalls.o
+	@rm -f bin/test.db
 

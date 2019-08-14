@@ -575,6 +575,12 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
 
 #[no_mangle]
 pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
+
+    //call start_db;
+    println!("start_db");
+    sqlitedb::sqlite::start_db();
+
+
     // Generate Keypair
     let ecc_handle = SgxEccHandle::new();
     let _result = ecc_handle.open();
@@ -615,9 +621,6 @@ pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t
     let mut mio_pk = privkey.clone();
 
 
-    //call start_db;
-    println!("start_db");
-    sqlitedb::sqlite::start_db();
 
 
     logger::logdemo::log_demo();

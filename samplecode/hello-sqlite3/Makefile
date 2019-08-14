@@ -155,7 +155,7 @@ enclave/Enclave_t.o: $(Enclave_EDL_Files)
 	@echo "CC   <=  $<"
 
 $(RustEnclave_Name): enclave compiler-rt enclave/Enclave_t.o
-	bash ../../sgx_db/sqlite3/build.sh
+	bash ../../sgx_db/sqlite3/buildhellosqlite3.sh
 	cp ../../sgx_db/sqlite3/sqlite3.o ./sqlite3
 	cd sqlite3 && bash build.sh && cd ..
 	cp ../../compiler-rt/libcompiler-rt-patch.a ./lib
