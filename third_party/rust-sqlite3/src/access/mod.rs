@@ -1,11 +1,11 @@
-//! Access to open sqlite3 database by filename.
+//! Access to open sqlitedb database by filename.
 //!
 //! The `core` module requires explicit authority to access files and such,
 //! following the principle of least authority.
 //!
 //! This module provides the privileged functions to create such authorities.
 //!
-//! *TODO: move `mod access` to its own crate so that linking to `sqlite3` doesn't
+//! *TODO: move `mod access` to its own crate so that linking to `sqlitedb` doesn't
 //! bring in this ambient authority.*
 
 use libc::c_int;
@@ -41,7 +41,7 @@ pub fn open(filename: &str, flags: Option<Flags>) -> SqliteResult<DatabaseConnec
 
 /// Access to a database by filename
 pub struct ByFilename<'a> {
-    /// Filename or sqlite3 style URI.
+    /// Filename or sqlitedb style URI.
     pub filename: &'a str,
     /// Flags for additional control over the new database connection.
     pub flags: Flags,

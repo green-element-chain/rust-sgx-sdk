@@ -16,7 +16,7 @@ pub trait ToSql {
 
 /// A trait for result values from a query.
 ///
-/// cf [sqlite3 result values][column].
+/// cf [sqlitedb result values][column].
 ///
 /// *inspired by sfackler's `FromSql` (and some haskell bindings?)*
 ///

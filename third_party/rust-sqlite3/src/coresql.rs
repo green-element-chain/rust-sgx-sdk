@@ -117,7 +117,7 @@ pub use super::{SqliteError, SqliteErrorCode, SqliteResult};
 pub use super::ColumnType;
 pub use super::ColumnType::SQLITE_NULL;
 
-use ffi; // TODO: move to sqlite3-sys crate
+use ffi; // TODO: move to sqlitedb-sys crate
 
 
 /// Successful result
@@ -167,7 +167,7 @@ impl Drop for Database {
     }
 }
 
-/// A connection to a sqlite3 database.
+/// A connection to a sqlitedb database.
 pub struct DatabaseConnection {
     db: Rc<Database>,
 
@@ -350,7 +350,7 @@ impl DatabaseConnection {
         unsafe { ffi::sqlite3_last_insert_rowid(self.db.handle) }
     }
 
-    /// Expose the underlying `sqlite3` struct pointer for use
+    /// Expose the underlying `sqlitedb` struct pointer for use
     /// with the `ffi` module.
     pub unsafe fn expose(&mut self) -> *mut ffi::sqlite3 {
         self.db.handle
@@ -358,7 +358,7 @@ impl DatabaseConnection {
 }
 
 
-/// Convert from sqlite3 API utf8 to rust str.
+/// Convert from sqlitedb API utf8 to rust str.
 fn charstar_str(utf_bytes: &*const c_char) -> Option<&str> {
     if utf_bytes.is_null() {
         return None;

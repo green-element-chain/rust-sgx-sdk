@@ -3,7 +3,7 @@ sudo: false
 addons:
   apt:
     packages:
-      - sqlite3
+      - sqlitedb
       - libsqlite3-dev
 
 rust:

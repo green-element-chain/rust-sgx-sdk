@@ -90,9 +90,7 @@ mod cert;
 mod hex;
 mod hmac_sha1;
 mod mio_server;
-mod sqlite;
-mod opening;
-mod typical;
+mod sqlitedb;
 
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
@@ -618,7 +616,7 @@ pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t
 
     //call start_db;
     println!("start_db");
-    sqlite::start_db();
+    sqlitedb::sqlite::start_db();
 
 
     mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone());

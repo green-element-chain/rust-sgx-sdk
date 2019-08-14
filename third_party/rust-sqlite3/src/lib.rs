@@ -351,13 +351,13 @@ impl RowIndex for &'static str {
 }
 
 
-/// The type used for returning and propagating sqlite3 errors.
+/// The type used for returning and propagating sqlitedb errors.
 #[must_use]
 pub type SqliteResult<T> = Result<T, SqliteError>;
 
 /// Result codes for errors.
 ///
-/// cf. [sqlite3 result codes][codes].
+/// cf. [sqlitedb result codes][codes].
 ///
 /// Note `SQLITE_OK` is not included; we use `Ok(...)` instead.
 ///

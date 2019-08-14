@@ -3,8 +3,8 @@ use std::slice;
 use std::prelude::v1::*;
 use std::vec::Vec;
 
-use opening;
-use typical;
+use crate::sqlitedb::opening;
+use crate::sqlitedb::typical;
 
 
 pub fn start_db() {
