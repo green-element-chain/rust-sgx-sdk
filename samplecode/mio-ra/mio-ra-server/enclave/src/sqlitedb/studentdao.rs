@@ -96,6 +96,30 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
     println!("insert bench data success");
 }
 
+pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
+    let mut tx = conn
+        .prepare(
+            "INSERT INTO student (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
+                           VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
+        )
+        .unwrap();
+    let changes = tx
+        .update(&[
+            &student.id,
+            &student.street,
+            &student.city,
+            &student.sendstatus,
+            &student.datatype,
+            &student.ops,
+            &student.age,
+            &student.clientid,
+            &student.indexid,
+        ])
+        .unwrap();
+    assert_eq!(changes, 1);
+    println!("insert student success");
+}
+
 pub fn select_student_sum(conn: &mut DatabaseConnection) {
     //select student sum(clientid)
 

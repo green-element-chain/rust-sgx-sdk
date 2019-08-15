@@ -313,7 +313,7 @@ impl Connection {
                     let result: Student = serde_json::from_str(inputstr).unwrap();
                     let mut students = Vec::new();
 
-                    let student = result.clone();
+                    let mut student = result.clone();
                     if hashmap.contains_key(&student.clientid) {
                         println!("student id {}", student.clientid);
                         let mut a = hashmap.get(&student.clientid).unwrap();
@@ -330,9 +330,11 @@ impl Connection {
 
                     if result.sendstatus == "end" {
                         students.push(result);
+                        sqlitedb::studentdao::insert_student(conn,&mut student);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                         self.tls_session.send_close_notify();
                     } else {
+                        sqlitedb::studentdao::insert_student(conn,&mut student);
                         let citystring = result.city.clone();
                         students.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
@@ -341,7 +343,7 @@ impl Connection {
                     let result: Teacher = serde_json::from_str(inputstr).unwrap();
                     let mut teachers = Vec::new();
 
-                    let teacher = result.clone();
+                    let mut teacher = result.clone();
                     if hashmap.contains_key(&teacher.clientid) {
                         println!("teacher id {}", teacher.clientid);
                         let mut a = hashmap.get(&teacher.clientid).unwrap();
@@ -358,9 +360,11 @@ impl Connection {
 
                     if result.sendstatus == "end" {
                         teachers.push(result);
+                        sqlitedb::teacherdao::insert_teacher(conn,&mut teacher);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                         self.tls_session.send_close_notify();
                     } else {
+                        sqlitedb::teacherdao::insert_teacher(conn,&mut teacher);
                         let citystring = result.city.clone();
                         teachers.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();

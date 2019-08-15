@@ -57,6 +57,30 @@ pub fn create_teacher_table(conn: &mut DatabaseConnection) {
     .unwrap();
 }
 
+pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
+    let mut tx = conn
+        .prepare(
+            "INSERT INTO teacher (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
+                           VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
+        )
+        .unwrap();
+    let changes = tx
+        .update(&[
+            &teacher.id,
+            &teacher.street,
+            &teacher.city,
+            &teacher.sendstatus,
+            &teacher.datatype,
+            &teacher.ops,
+            &teacher.age,
+            &teacher.clientid,
+            &teacher.indexid,
+        ])
+        .unwrap();
+    assert_eq!(changes, 1);
+    println!("insert student success");
+}
+
 pub fn insert_bench_teacher(conn: &mut DatabaseConnection) {
     for (_i, j) in (0..10).enumerate() {
         let teacher = Teacher {
