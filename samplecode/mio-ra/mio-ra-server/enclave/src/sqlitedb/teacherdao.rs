@@ -6,6 +6,37 @@ use sqlite3::access::flags::Flags;
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
+use sqlitedb::sqlops::lose;
+
+pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
+    if !&exist_flag {
+        println!("----------------teacher base operation ------------------");
+        //setp 1 : create teacher table; insert some data;
+        println!("----------------------------------");
+        create_teacher_table(conn);
+        println!("----------------------------------");
+
+        //step 2: insert bench data;
+        println!("----------------------------------");
+        insert_bench_teacher(conn);
+        println!("----------------------------------");
+    }
+
+    //step 3 : select teacher sum
+    println!("----------------------------------");
+    select_teacher_sum(conn);
+    println!("----------------------------------");
+
+    //step 4 : search teacher list
+    println!("----------------------------------");
+    match select_teacher_list(conn) {
+        Ok(y) => {
+            println!("SELECT * FROM teacher");
+            println!("Ok: {:?}", y);
+        }
+        Err(oops) => lose(format!("oops!: {:?}", oops).as_ref()),
+    }
+}
 
 pub fn create_teacher_table(conn: &mut DatabaseConnection) {
     println!("table not existed!");
@@ -80,10 +111,7 @@ pub fn select_teacher_sum(conn: &mut DatabaseConnection) {
     }
 }
 
-pub fn select_teacher_list(
-    conn: &mut DatabaseConnection,
-    existed: bool,
-) -> SqliteResult<Vec<Teacher>> {
+pub fn select_teacher_list(conn: &mut DatabaseConnection) -> SqliteResult<Vec<Teacher>> {
     //    select teacher
     let mut stmt = conn.prepare("SELECT * FROM teacher")?;
 

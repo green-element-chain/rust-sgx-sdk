@@ -3,6 +3,8 @@ use crate::beans::teacher::Teacher;
 use mio::net::{TcpListener, TcpStream};
 use rustls::{NoClientAuth, ServerConfig, Session};
 use sgx_types::uint8_t;
+use sqlite3::DatabaseConnection;
+use sqlitedb;
 use std::collections::HashMap;
 use std::io::{self, BufReader, Read, Write};
 use std::net;
@@ -82,6 +84,7 @@ impl TlsServer {
         poll: &mut mio::Poll,
         event: &mio::event::Event,
         hashmap: &mut HashMap<i32, i32>,
+        conn: &mut DatabaseConnection,
     ) {
         let token = event.token();
 
@@ -89,7 +92,7 @@ impl TlsServer {
             self.connections
                 .get_mut(&token)
                 .unwrap()
-                .ready(poll, event, hashmap);
+                .ready(poll, event, hashmap, conn);
 
             if self.connections[&token].is_closed() {
                 self.connections.remove(&token);
@@ -168,13 +171,14 @@ impl Connection {
         poll: &mut mio::Poll,
         ev: &mio::event::Event,
         hashmap: &mut HashMap<i32, i32>,
+        conn: &mut DatabaseConnection,
     ) {
         // If we're readable: read some TLS.  Then
         // see if that yielded new plaintext.  Then
         // see if the backend is readable too.
         if ev.readiness().is_readable() {
             self.do_tls_read();
-            self.try_plain_read(hashmap);
+            self.try_plain_read(hashmap, conn);
             self.try_back_read();
         }
 
@@ -230,7 +234,7 @@ impl Connection {
         }
     }
 
-    fn try_plain_read(&mut self, hashmap: &mut HashMap<i32, i32>) {
+    fn try_plain_read(&mut self, hashmap: &mut HashMap<i32, i32>, conn: &mut DatabaseConnection) {
         // Read and process all available plaintext.
         let mut buf = Vec::new();
 
@@ -244,7 +248,7 @@ impl Connection {
         if !buf.is_empty() {
             let inputstr = std::str::from_utf8(&buf).unwrap();
             debug!("plaintext read {:?}", buf.len());
-            self.incoming_plaintext(&buf, hashmap);
+            self.incoming_plaintext(&buf, hashmap, conn);
         } else {
         }
     }
@@ -282,7 +286,12 @@ impl Connection {
     }
 
     /// Process some amount of received plaintext.
-    fn incoming_plaintext(&mut self, buf: &[u8], hashmap: &mut HashMap<i32, i32>) {
+    fn incoming_plaintext(
+        &mut self,
+        buf: &[u8],
+        hashmap: &mut HashMap<i32, i32>,
+        conn: &mut DatabaseConnection,
+    ) {
         match self.mode {
             ServerMode::Echo => {
                 let inputstr = std::str::from_utf8(buf).unwrap();
@@ -357,6 +366,7 @@ impl Connection {
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                     }
                 }
+                sqlitedb::opening::base_test(conn, 1);
             }
             ServerMode::Http => {
                 self.send_http_response_once();
@@ -463,6 +473,7 @@ pub fn run_mioserver(
     max_conn: uint8_t,
     mio_cert: Vec<rustls::Certificate>,
     mio_key: rustls::PrivateKey,
+    conn: &mut DatabaseConnection,
 ) {
     let addr: net::SocketAddr = "0.0.0.0:8443".parse().unwrap();
     let mode = ServerMode::Echo;
@@ -483,7 +494,7 @@ pub fn run_mioserver(
 
     let mut tlsserv = TlsServer::new(listener, mode, config);
 
-    println!("\n\n\n\nYou are staring : {}", "mio_server");
+    println!("\n\n\n\nYou are staring : {}", "mioserver");
 
     let mut hashmap: HashMap<i32, i32> = HashMap::new();
 
@@ -500,7 +511,7 @@ pub fn run_mioserver(
                         break 'outer;
                     }
                 }
-                _ => tlsserv.conn_event(&mut poll, &event, &mut hashmap),
+                _ => tlsserv.conn_event(&mut poll, &event, &mut hashmap, conn),
             }
         }
     }

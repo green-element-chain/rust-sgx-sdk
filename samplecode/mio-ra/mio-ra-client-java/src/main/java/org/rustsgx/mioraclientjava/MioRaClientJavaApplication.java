@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class MioRaClientJavaApplication {
 
     public static void main(String[] args) throws Exception{
-        int threadCount = 30;
+        int threadCount = 2;
         ExecutorService service = Executors.newFixedThreadPool(threadCount);
         for (int i = 0; i < threadCount; i++) {
             service.execute(() -> {

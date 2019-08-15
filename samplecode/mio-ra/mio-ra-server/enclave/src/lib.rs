@@ -83,12 +83,15 @@ use std::untrusted::fs;
 use std::vec::Vec;
 
 mod beans;
-mod cert;
-mod hex;
-mod hmac_sha1;
 mod logger;
-mod mio_server;
+mod mioserver;
 mod sqlitedb;
+mod sgxcert;
+
+use sgxcert::cert;
+use sgxcert::hmac_sha1;
+use sgxcert::hex;
+use mioserver::mio_server;
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
 //pub const PROD_HOSTNAME:&'static str = "as.sgx.trustedservices.intel.com";
@@ -577,7 +580,11 @@ pub extern "C" fn run_server(
 ) -> sgx_status_t {
     //call start_db;
     println!("start_db");
-    sqlitedb::sqlite::start_db(existed);
+    let mut conn;
+    match sqlitedb::sqlite::start_db(existed) {
+        Ok(x) => conn = x,
+        _ => panic!("create database failed"),
+    }
 
     // Generate Keypair
     let ecc_handle = SgxEccHandle::new();
@@ -620,7 +627,7 @@ pub extern "C" fn run_server(
 
     logger::logdemo::log_demo();
 
-    mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone());
+    mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone(), &mut conn);
 
     sgx_status_t::SGX_SUCCESS
 }
