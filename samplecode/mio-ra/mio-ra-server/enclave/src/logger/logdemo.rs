@@ -1,5 +1,5 @@
-pub fn log_demo(){
+pub fn log_demo() {
     println!("------------------------------------------");
-    println!("{}","this is a simple logger test");
+    println!("{}", "this is a simple logger test");
     println!("------------------------------------------");
 }

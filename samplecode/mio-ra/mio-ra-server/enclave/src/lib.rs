@@ -62,10 +62,7 @@ extern crate log;
 extern crate sgx_untrusted_time as time;
 extern crate sqlite3;
 
-use sqlite3::{
-    DatabaseConnection,
-    SqliteResult,
-};
+use sqlite3::{DatabaseConnection, SqliteResult};
 
 use sgx_rand::*;
 use sgx_tcrypto::*;
@@ -78,21 +75,20 @@ use std::io::{self, BufReader, Read, Write};
 use std::net::TcpStream;
 use std::prelude::v1::*;
 use std::ptr;
+use std::slice;
 use std::str;
 use std::string::String;
 use std::sync::Arc;
 use std::untrusted::fs;
 use std::vec::Vec;
-use std::slice;
 
+mod beans;
 mod cert;
 mod hex;
 mod hmac_sha1;
+mod logger;
 mod mio_server;
 mod sqlitedb;
-mod logger;
-mod beans;
-
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
 //pub const PROD_HOSTNAME:&'static str = "as.sgx.trustedservices.intel.com";
@@ -574,12 +570,14 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
 }
 
 #[no_mangle]
-pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t, existed: uint8_t) -> sgx_status_t {
-
+pub extern "C" fn run_server(
+    max_conn: uint8_t,
+    sign_type: sgx_quote_sign_type_t,
+    existed: uint8_t,
+) -> sgx_status_t {
     //call start_db;
     println!("start_db");
     sqlitedb::sqlite::start_db(existed);
-
 
     // Generate Keypair
     let ecc_handle = SgxEccHandle::new();
@@ -620,11 +618,9 @@ pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
 
-
     logger::logdemo::log_demo();
 
     mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone());
 
     sgx_status_t::SGX_SUCCESS
 }
-

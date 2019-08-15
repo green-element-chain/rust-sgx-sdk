@@ -1,3 +1,5 @@
 pub mod opening;
 pub mod sqlite;
-pub mod typical;
+pub mod sqlops;
+pub mod studentdao;
+pub mod teacherdao;
