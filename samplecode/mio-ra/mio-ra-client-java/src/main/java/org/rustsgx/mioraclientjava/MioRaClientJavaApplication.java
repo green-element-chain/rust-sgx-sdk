@@ -54,7 +54,7 @@ public class MioRaClientJavaApplication {
 
             System.out.println("before senddata");
 
-            int max=100000,min=1;
+            int max=1000000,min=1;
             int ran2 = (int) (Math.random()*(max-min)+min);
             int clientID = (int)(ran2*1);
             System.out.printf("clientId is %d\n",clientID);

@@ -1,4 +1,5 @@
-use bean::{Student, Teacher};
+use crate::beans::student::Student;
+use crate::beans::teacher::Teacher;
 use mio::net::{TcpListener, TcpStream};
 use rustls::{NoClientAuth, ServerConfig, Session};
 use sgx_types::uint8_t;
@@ -80,7 +81,7 @@ impl TlsServer {
         &mut self,
         poll: &mut mio::Poll,
         event: &mio::event::Event,
-        hashmap: &mut HashMap<u32, u8>,
+        hashmap: &mut HashMap<i32, i32>,
     ) {
         let token = event.token();
 
@@ -166,7 +167,7 @@ impl Connection {
         &mut self,
         poll: &mut mio::Poll,
         ev: &mio::event::Event,
-        hashmap: &mut HashMap<u32, u8>,
+        hashmap: &mut HashMap<i32, i32>,
     ) {
         // If we're readable: read some TLS.  Then
         // see if that yielded new plaintext.  Then
@@ -229,7 +230,7 @@ impl Connection {
         }
     }
 
-    fn try_plain_read(&mut self, hashmap: &mut HashMap<u32, u8>) {
+    fn try_plain_read(&mut self, hashmap: &mut HashMap<i32, i32>) {
         // Read and process all available plaintext.
         let mut buf = Vec::new();
 
@@ -281,7 +282,7 @@ impl Connection {
     }
 
     /// Process some amount of received plaintext.
-    fn incoming_plaintext(&mut self, buf: &[u8], hashmap: &mut HashMap<u32, u8>) {
+    fn incoming_plaintext(&mut self, buf: &[u8], hashmap: &mut HashMap<i32, i32>) {
         match self.mode {
             ServerMode::Echo => {
                 let inputstr = std::str::from_utf8(buf).unwrap();
@@ -304,21 +305,21 @@ impl Connection {
                     let mut students = Vec::new();
 
                     let student = result.clone();
-                    if hashmap.contains_key(&student.client_id) {
-                        println!("student id {}", student.client_id);
-                        let mut a = hashmap.get(&student.client_id).unwrap();
+                    if hashmap.contains_key(&student.clientid) {
+                        println!("student id {}", student.clientid);
+                        let mut a = hashmap.get(&student.clientid).unwrap();
                         let mut value = a + 1;
-                        hashmap.insert(student.client_id, value);
+                        hashmap.insert(student.clientid, value);
                     } else {
-                        println!("student id {}", student.client_id);
-                        hashmap.insert(student.client_id, 0);
+                        println!("student id {}", student.clientid);
+                        hashmap.insert(student.clientid, 0);
                     }
                     println!(
                         "Hashmap's value is {}",
-                        hashmap.get(&student.client_id).unwrap()
+                        hashmap.get(&student.clientid).unwrap()
                     );
 
-                    if result.send_status == "end" {
+                    if result.sendstatus == "end" {
                         students.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                         self.tls_session.send_close_notify();
@@ -332,21 +333,21 @@ impl Connection {
                     let mut teachers = Vec::new();
 
                     let teacher = result.clone();
-                    if hashmap.contains_key(&teacher.client_id) {
-                        println!("teacher id {}", teacher.client_id);
-                        let mut a = hashmap.get(&teacher.client_id).unwrap();
+                    if hashmap.contains_key(&teacher.clientid) {
+                        println!("teacher id {}", teacher.clientid);
+                        let mut a = hashmap.get(&teacher.clientid).unwrap();
                         let mut value = a + 1;
-                        hashmap.insert(teacher.client_id, value);
+                        hashmap.insert(teacher.clientid, value);
                     } else {
-                        println!("teacher id {}", teacher.client_id);
-                        hashmap.insert(teacher.client_id, 0);
+                        println!("teacher id {}", teacher.clientid);
+                        hashmap.insert(teacher.clientid, 0);
                     }
                     println!(
                         "Hashmap's value is {}",
-                        hashmap.get(&teacher.client_id).unwrap()
+                        hashmap.get(&teacher.clientid).unwrap()
                     );
 
-                    if result.send_status == "end" {
+                    if result.sendstatus == "end" {
                         teachers.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                         self.tls_session.send_close_notify();
@@ -484,7 +485,7 @@ pub fn run_mioserver(
 
     println!("\n\n\n\nYou are staring : {}", "mio_server");
 
-    let mut hashmap: HashMap<u32, u8> = HashMap::new();
+    let mut hashmap: HashMap<i32, i32> = HashMap::new();
 
     let mut events = mio::Events::with_capacity(256);
     'outer: loop {

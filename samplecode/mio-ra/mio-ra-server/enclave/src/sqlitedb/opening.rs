@@ -16,6 +16,8 @@ use sqlite3::access;
 use sqlite3::access::flags::Flags;
 use std::untrusted::fs::File;
 
+use crate::beans::teacher::Teacher;
+
 pub fn opening(existed:uint8_t) {
     let args : Vec<String> = Vec::new();
     let usage = "sqlite";
@@ -43,7 +45,7 @@ pub fn opening(existed:uint8_t) {
 
     println!("test_openings success!");
 
-    fn use_access<A: Access>(access: A, existed: uint8_t) -> SqliteResult<Vec<Person>> {
+    fn use_access<A: Access>(access: A, existed: uint8_t) -> SqliteResult<Vec<Teacher>> {
         let mut conn = try!(DatabaseConnection::new(access));
         let mut exist_flag = false;
         let mut number = 1;
@@ -78,7 +80,10 @@ struct Person {
     name: String,
     price: i32,
 }
-fn use_access<A: Access>(access: A, existed: bool) -> SqliteResult<Vec<Person>> {
+
+
+
+fn use_access<A: Access>(access: A, existed: bool) -> SqliteResult<Vec<Teacher>> {
     let mut conn = DatabaseConnection::new(access)?;
     make_people(&mut conn, existed)
 }
@@ -90,36 +95,52 @@ fn lose(why: &str) {
     stderr_lock.write_fmt(format_args!("{}", why)).unwrap()
 }
 
-fn make_people(conn: &mut DatabaseConnection, existed: bool) -> SqliteResult<Vec<Person>> {
+fn make_people(conn: &mut DatabaseConnection, existed: bool) -> SqliteResult<Vec<Teacher>> {
     if !existed {
         println!("table not existed!");
+
         conn.exec(
-            "CREATE TABLE person (
+            "CREATE TABLE teacher (
                  id              SERIAL PRIMARY KEY,
-                 name            VARCHAR NOT NULL,
-                 price           integer
+                 street          VARCHAR NOT NULL,
+                 city            VARCHAR NOT NULL,
+                 sendstatus      VARCHAR NOT NULL,
+                 datatype        VARCHAR NOT NULL,
+                 ops             VARCHAR NOT NULL,
+                 age             integer,
+                 clientid        integer,
+                 indexid         integer
                )",
         )?;
 
-        for (_i, j) in (0..50).enumerate() {
-            let person = Person {
+        for (_i, j) in (0..10).enumerate() {
+            let teacher = Teacher {
                 id: j,
-                name: "Dan".to_owned() + j.to_string().as_str(),
-                price: j,
+                street: "streett".to_string(),
+                city: "cityt".to_string(),
+                sendstatus: "sendstatust".to_string(),
+                datatype: "datatypet".to_string(),
+                ops: "insert".to_string(),
+                age: j,
+                clientid: 10000,
+                indexid: j,
             };
 
             let mut tx = conn.prepare(
-                "INSERT INTO person (id, name,price)
-                           VALUES ($1, $2, $3)",
+                "INSERT INTO teacher (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
+                           VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
             )?;
-            let changes = tx.update(&[&person.id, &person.name, &person.price])?;
+            let changes = tx.update(&[&teacher.id, &teacher.street, &teacher.city,
+                &teacher.sendstatus,&teacher.datatype,&teacher.ops,&teacher.age,
+                &teacher.clientid,&teacher.indexid])?;
             assert_eq!(changes, 1);
         }
     }else{
         println!("db existed!table existed!");
     }
 
-    let mut stmt2 = conn.prepare("SELECT sum(price) FROM person")?;
+    //select teacher
+    let mut stmt2 = conn.prepare("SELECT sum(clientid) FROM teacher")?;
     let mut results = stmt2.execute();
     match results.step() {
         Ok(Some(ref mut row1)) => {
@@ -130,8 +151,10 @@ fn make_people(conn: &mut DatabaseConnection, existed: bool) -> SqliteResult<Vec
         Err(oops) => panic!(oops),
         Ok(None) => panic!("where did our row go?"),
     }
+    println!("SELECT sum(clientid) FROM teacher");
 
-    let mut stmt = conn.prepare("SELECT * FROM person")?;
+//    select teacher
+    let mut stmt = conn.prepare("SELECT * FROM teacher")?;
 
     let snoc = |x, mut xs: Vec<_>| {
         xs.push(x);
@@ -140,14 +163,21 @@ fn make_people(conn: &mut DatabaseConnection, existed: bool) -> SqliteResult<Vec
 
     let ppl = stmt.query_fold(&[], vec![], |row, ppl| {
         Ok(snoc(
-            Person {
+            Teacher {
                 id: row.get(0),
-                name: row.get(1),
-                price: row.get(2),
+                street: row.get(1),
+                city: row.get(2),
+                sendstatus: row.get(3),
+                datatype: row.get(4),
+                ops: row.get(5),
+                age: row.get(6),
+                clientid: row.get(7),
+                indexid:row.get(8),
             },
             ppl,
         ))
     })?;
     Ok(ppl)
+
 
 }

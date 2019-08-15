@@ -1,14 +1,23 @@
 package org.rustsgx.mioraclientjava.bean;
 
 public class Student {
+    private int id;
     private String street;
     private String city;
     private int age;
-    private String sendStatus;
-    private int clientId;
-    private String dataType;
+    private String sendstatus;
+    private int clientid;
+    private String datatype;
     private String ops;
-    private int index;
+    private int indexid;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getStreet() {
         return street;
@@ -20,14 +29,6 @@ public class Student {
 
     public String getCity() {
         return city;
-    }
-
-    public int getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(int clientId) {
-        this.clientId = clientId;
     }
 
     public void setCity(String city) {
@@ -42,22 +43,6 @@ public class Student {
         this.age = age;
     }
 
-    public String getSendStatus() {
-        return sendStatus;
-    }
-
-    public void setSendStatus(String sendStatus) {
-        this.sendStatus = sendStatus;
-    }
-
-    public String getDataType() {
-        return dataType;
-    }
-
-    public void setDataType(String dataType) {
-        this.dataType = dataType;
-    }
-
     public String getOps() {
         return ops;
     }
@@ -66,22 +51,47 @@ public class Student {
         this.ops = ops;
     }
 
-    public int getIndex() {
-        return index;
+    public String getSendstatus() {
+        return sendstatus;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
+    public void setSendstatus(String sendstatus) {
+        this.sendstatus = sendstatus;
+    }
+
+    public int getClientid() {
+        return clientid;
+    }
+
+    public void setClientid(int clientid) {
+        this.clientid = clientid;
+    }
+
+    public String getDatatype() {
+        return datatype;
+    }
+
+    public void setDatatype(String datatype) {
+        this.datatype = datatype;
+    }
+
+    public int getIndexid() {
+        return indexid;
+    }
+
+    public void setIndexid(int indexid) {
+        this.indexid = indexid;
     }
 
     public void constructStudent(int i, String sendStatus, int clientId){
+        this.setId(i+clientId);
         this.setAge(i);
         this.setCity("City"+Integer.toString(i));
         this.setStreet("Street"+Integer.toString(i));
-        this.setSendStatus(sendStatus);
-        this.setClientId(clientId);
-        this.setDataType("energy_student");
+        this.setSendstatus(sendStatus);
+        this.setClientid(clientId);
+        this.setDatatype("energy_student");
         this.setOps("insert");
-        this.setIndex(i);
+        this.setIndexid(i);
     }
 }
