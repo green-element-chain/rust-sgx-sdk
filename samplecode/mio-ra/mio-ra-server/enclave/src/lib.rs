@@ -574,11 +574,11 @@ fn load_private_key(filename: &str) -> rustls::PrivateKey {
 }
 
 #[no_mangle]
-pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t {
+pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t, existed: uint8_t) -> sgx_status_t {
 
     //call start_db;
     println!("start_db");
-    sqlitedb::sqlite::start_db();
+    sqlitedb::sqlite::start_db(existed);
 
 
     // Generate Keypair
@@ -619,8 +619,6 @@ pub extern "C" fn run_server(max_conn: uint8_t, sign_type: sgx_quote_sign_type_t
 
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
-
-
 
 
     logger::logdemo::log_demo();

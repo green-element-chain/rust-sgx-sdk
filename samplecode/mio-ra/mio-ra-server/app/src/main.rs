@@ -51,7 +51,7 @@ static ENCLAVE_TOKEN: &'static str = "enclave.token";
 
 extern {
     fn run_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
-                  max_conn: uint8_t, sign_type: sgx_quote_sign_type_t) -> sgx_status_t;
+                  max_conn: uint8_t, sign_type: sgx_quote_sign_type_t, existed: uint8_t) -> sgx_status_t;
 
     fn say_something(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
                      some_string: *const u8, len: usize) -> sgx_status_t;
@@ -221,6 +221,20 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
 }
 
 fn main() {
+    let dbfile = "test.db";
+    let mut existed = 0;
+    match fs::File::open(dbfile){
+        Err(_) => {
+            existed = 0;
+            println!("dbfile not existed");
+        },
+        _ =>{
+            existed = 1;
+            println!("dbfile existed");
+        }
+    }
+
+
     let mut args: Vec<_> = env::args().collect();
     let mut sign_type = sgx_quote_sign_type_t::SGX_LINKABLE_SIGNATURE;
     let mut max_conn = 30;
@@ -254,7 +268,7 @@ fn main() {
 
     let mut retval = sgx_status_t::SGX_SUCCESS;
     let result = unsafe {
-        run_server(enclave.geteid(), &mut retval, max_conn,  sign_type)
+        run_server(enclave.geteid(), &mut retval, max_conn,  sign_type, existed)
     };
     match result {
         sgx_status_t::SGX_SUCCESS => {

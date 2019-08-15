@@ -43,7 +43,8 @@ enclave {
     include "../ocall_types.h" // Need to import some type declartions from stdlib
 
     trusted {
-        public sgx_status_t run_server(uint8_t max_conn, sgx_quote_sign_type_t quote_type);
+        public sgx_status_t run_server(uint8_t max_conn, sgx_quote_sign_type_t quote_type, uint8_t existed);
+        //existed 1; not existed 0
     };
 
     untrusted {

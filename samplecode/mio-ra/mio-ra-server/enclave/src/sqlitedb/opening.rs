@@ -2,6 +2,7 @@ use std::default::Default;
 use std::io::Write;
 use std::prelude::v1::*;
 use std::vec::Vec;
+use sgx_types::*;
 
 use sqlite3::{
     Access,
@@ -13,8 +14,9 @@ use sqlite3::{
 };
 use sqlite3::access;
 use sqlite3::access::flags::Flags;
+use std::untrusted::fs::File;
 
-pub fn opening() {
+pub fn opening(existed:uint8_t) {
     let args : Vec<String> = Vec::new();
     let usage = "sqlite";
 
@@ -41,9 +43,15 @@ pub fn opening() {
 
     println!("test_openings success!");
 
-    fn use_access<A: Access>(access: A) -> SqliteResult<Vec<Person>> {
+    fn use_access<A: Access>(access: A, existed: uint8_t) -> SqliteResult<Vec<Person>> {
         let mut conn = try!(DatabaseConnection::new(access));
-        make_people(&mut conn, false)
+        let mut exist_flag = false;
+        let mut number = 1;
+        if (existed == 1) {
+            exist_flag = true
+        }
+
+        make_people(&mut conn, exist_flag)
     }
 
 
@@ -55,7 +63,7 @@ pub fn opening() {
     }
 
     match cli_access {
-        Some(a) => match use_access(a) {
+        Some(a) => match use_access(a,existed) {
             Ok(x) => println!("Ok: {:?}", x),
             Err(oops) => lose(format!("oops!: {:?}", oops).as_ref())
         },
@@ -84,6 +92,7 @@ fn lose(why: &str) {
 
 fn make_people(conn: &mut DatabaseConnection, existed: bool) -> SqliteResult<Vec<Person>> {
     if !existed {
+        println!("table not existed!");
         conn.exec(
             "CREATE TABLE person (
                  id              SERIAL PRIMARY KEY,
@@ -106,6 +115,8 @@ fn make_people(conn: &mut DatabaseConnection, existed: bool) -> SqliteResult<Vec
             let changes = tx.update(&[&person.id, &person.name, &person.price])?;
             assert_eq!(changes, 1);
         }
+    }else{
+        println!("db existed!table existed!");
     }
 
     let mut stmt2 = conn.prepare("SELECT sum(price) FROM person")?;
