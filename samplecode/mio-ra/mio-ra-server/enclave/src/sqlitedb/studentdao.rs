@@ -10,7 +10,7 @@ use sqlitedb::sqlops::lose;
 
 pub fn base_student_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     println!("----------------student base operation ------------------");
-    //setp 1 : create teacher table; insert some data;
+    //setp 1 : create student table; insert some data;
     if !&exist_flag {
         println!("----------------------------------");
         create_student_table(conn);
@@ -20,14 +20,19 @@ pub fn base_student_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
         println!("----------------------------------");
         insert_bench_student(conn);
         println!("----------------------------------");
+
+        //step 3: delete student
+        println!("----------------------------------");
+        delete_student(conn);
+        println!("----------------------------------");
     }
 
-    //step 3 : select teacher sum
+    //step 4 : select student sum
     println!("----------------------------------");
     select_student_sum(conn);
     println!("----------------------------------");
 
-    //step 4 : search teacher list
+    //step 5 : search student list
     println!("----------------------------------");
     match select_student_list(conn) {
         Ok(y) => {
@@ -133,6 +138,19 @@ pub fn select_student_sum(conn: &mut DatabaseConnection) {
         }
         Err(oops) => panic!(oops),
         Ok(None) => panic!("where did our row go?"),
+    }
+}
+
+pub fn delete_student(conn: &mut DatabaseConnection){
+    println!("delete data FROM student");
+    let mut stmt2 = conn.prepare("DELETE FROM student WHERE ID = 4").unwrap();
+    let mut results = stmt2.execute();
+    match results.step() {
+        Ok(Some(ref mut row1)) => {
+            println!("delete success");
+        }
+        Err(oops) => panic!(oops),
+        Ok(None) => println!("delete success"),
     }
 }
 

@@ -20,14 +20,19 @@ pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
         println!("----------------------------------");
         insert_bench_teacher(conn);
         println!("----------------------------------");
-    }
 
-    //step 3 : select teacher sum
+
+        //step 3: delete student
+        println!("----------------------------------");
+        delete_teacher(conn);
+        println!("----------------------------------");
+    }
+    //step 4 : select teacher sum
     println!("----------------------------------");
     select_teacher_sum(conn);
     println!("----------------------------------");
 
-    //step 4 : search teacher list
+    //step 5 : search teacher list
     println!("----------------------------------");
     match select_teacher_list(conn) {
         Ok(y) => {
@@ -79,6 +84,19 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
         .unwrap();
     assert_eq!(changes, 1);
     println!("insert student success");
+}
+
+pub fn delete_teacher(conn: &mut DatabaseConnection){
+    println!("delete data FROM teacher");
+    let mut stmt2 = conn.prepare("DELETE FROM teacher WHERE ID = 5").unwrap();
+    let mut results = stmt2.execute();
+    match results.step() {
+        Ok(Some(ref mut row1)) => {
+            println!("delete success");
+        }
+        Err(oops) => panic!(oops),
+        Ok(None) => println!("delete success"),
+    }
 }
 
 pub fn insert_bench_teacher(conn: &mut DatabaseConnection) {
