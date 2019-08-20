@@ -43,8 +43,8 @@ use std::vec::Vec;
 use std::io::{self, Write};
 use std::slice;
 
-#[macro_use] extern crate log;
-extern crate env_logger;
+#[macro_use] extern crate log_gel as log;
+extern crate env_logger_gel as env_logger;
 
 #[no_mangle]
 pub extern "C" fn say_something(some_string: *const u8, some_len: usize) -> sgx_status_t {
