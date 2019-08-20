@@ -20,6 +20,8 @@ sgx_rand    = { path = "../../../../sgx_rand"}
 [dependencies]
 mio         = { path = "../../../../third_party/mio" }
 log         = { path = "../../../../third_party/log", features = ["std"] }
+log_gel = { path = "../../../../third_party/mesalock-sgx/log-sgx" }
+env_logger_gel = { path = "../../../../third_party/mesalock-sgx/env_logger-sgx" }
 chrono      = { path = "../../../../third_party/chrono" }
 webpki      = { path = "../../../../third_party/webpki" }
 base64      = { path = "../../../../third_party/rust-base64" }
@@ -37,3 +39,4 @@ serde       = { path = "../../../../third_party/serde-rs/serde/serde" }
 serde_derive = { path = "../../../../third_party/serde-rs/serde/serde_derive" }
 rust-sqlite = { path = "../../../../third_party/rust-sqlite3" }
 sgx_untrusted_time  = { path = "../../../../third_party/time" }
+

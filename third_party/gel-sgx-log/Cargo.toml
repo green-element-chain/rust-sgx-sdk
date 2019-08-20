@@ -1,0 +1,22 @@
+[package]
+name = "gel-sgx-log"
+version = "0.1.0"
+authors = ["webb.shi <bradyjoestar@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+
+
+[features]
+test = []
+default = []
+
+[dependencies]
+log = { path =  "../mesalock-sgx/log-sgx" }
+env_logger = { path =  "../mesalock-sgx/env_logger-sgx" }
+
+[target.'cfg(not(target_env = "sgx"))'.dependencies]
+sgx_tstd = { path =  "../../sgx_tstd" }
+sgx_libc = { path =  "../../sgx_libc" }

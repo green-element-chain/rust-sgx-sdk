@@ -988,7 +988,7 @@ consistent!(amigo_3, r"^\)");
 // amigo-0.3.1: r"^\s+"
 consistent!(amigo_4, r"^\s+");
 
-// ethcore-logger-1.12.0: "\x1b\\[[^m]+m"
+// ethcore-loggers-1.12.0: "\x1b\\[[^m]+m"
 consistent!(ethcore_logger_0, "\x1b\\[[^m]+m");
 
 // dash2html-1.0.1: r"__.*?__"

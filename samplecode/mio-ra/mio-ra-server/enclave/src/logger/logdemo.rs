@@ -1,5 +1,6 @@
 pub fn log_demo() {
     println!("------------------------------------------");
-    println!("{}", "this is a simple logger test");
+    env_logger_gel::init();
     println!("------------------------------------------");
+
 }

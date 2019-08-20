@@ -62,6 +62,9 @@ extern crate log;
 extern crate sgx_untrusted_time as time;
 extern crate sqlite3;
 
+extern crate log_gel;
+extern crate env_logger_gel;
+
 use sqlite3::{DatabaseConnection, SqliteResult};
 
 use sgx_rand::*;
@@ -578,6 +581,10 @@ pub extern "C" fn run_server(
     sign_type: sgx_quote_sign_type_t,
     existed: uint8_t,
 ) -> sgx_status_t {
+
+    logger::logdemo::log_demo();
+
+
     //call start_db;
     println!("start_db");
     let mut conn;
@@ -625,7 +632,6 @@ pub extern "C" fn run_server(
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
 
-    logger::logdemo::log_demo();
 
     mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone(), &mut conn);
 
