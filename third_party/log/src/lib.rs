@@ -289,14 +289,14 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 mod macros;
 mod serde;
 
-// The LOGGER static holds a pointer to the global logger. It is protected by
+// The LOGGER static holds a pointer to the global loggers. It is protected by
 // the STATE static which determines whether LOGGER has been initialized yet.
 static mut LOGGER: &'static Log = &NopLogger;
 static STATE: AtomicUsize = AtomicUsize::new(0);
 
-// There are three different states that we care about: the logger's
-// uninitialized, the logger's initializing (set_logger's been called but
-// LOGGER hasn't actually been set yet), or the logger's active.
+// There are three different states that we care about: the loggers's
+// uninitialized, the loggers's initializing (set_logger's been called but
+// LOGGER hasn't actually been set yet), or the loggers's active.
 const UNINITIALIZED: usize = 0;
 const INITIALIZING: usize = 1;
 const INITIALIZED: usize = 2;
@@ -305,11 +305,11 @@ static MAX_LOG_LEVEL_FILTER: AtomicUsize = AtomicUsize::new(0);
 
 static LOG_LEVEL_NAMES: [&'static str; 6] = ["OFF", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"];
 
-static SET_LOGGER_ERROR: &'static str = "attempted to set a logger after the logging system \
+static SET_LOGGER_ERROR: &'static str = "attempted to set a loggers after the logging system \
                      was already initialized";
 static LEVEL_PARSE_ERROR: &'static str = "attempted to convert a string that doesn't match an existing log level";
 
-/// An enum representing the available verbosity levels of the logger.
+/// An enum representing the available verbosity levels of the loggers.
 ///
 /// Typical usage includes: checking if a certain `Level` is enabled with
 /// [`log_enabled!`](macro.log_enabled.html), specifying the `Level` of
@@ -455,7 +455,7 @@ impl Level {
     }
 }
 
-/// An enum representing the available verbosity level filters of the logger.
+/// An enum representing the available verbosity level filters of the loggers.
 ///
 /// A `LevelFilter` may be compared directly to a [`Level`](enum.Level.html).
 /// Use this type to [`get()`](struct.MaxLevelFilter.html#method.get) and
@@ -925,7 +925,7 @@ impl<'a> MetadataBuilder<'a> {
     }
 }
 
-/// A trait encapsulating the operations required of a logger.
+/// A trait encapsulating the operations required of a loggers.
 pub trait Log: Sync + Send {
     /// Determines if a log message with the specified metadata would be
     /// logged.
@@ -962,8 +962,8 @@ impl Log for NopLogger {
 /// filter.
 ///
 /// The maximum log level is used as an optimization to avoid evaluating log
-/// messages that will be ignored by the logger. Any message with a level
-/// higher than the maximum log level filter will be ignored. A logger should
+/// messages that will be ignored by the loggers. Any message with a level
+/// higher than the maximum log level filter will be ignored. A loggers should
 /// make sure to keep the maximum log level filter in sync with its current
 /// configuration.
 #[allow(missing_copy_implementations)]
@@ -1005,7 +1005,7 @@ pub fn max_level() -> LevelFilter {
     unsafe { mem::transmute(MAX_LOG_LEVEL_FILTER.load(Ordering::Relaxed)) }
 }
 
-/// Sets the global logger to a `Box<Log>`.
+/// Sets the global loggers to a `Box<Log>`.
 ///
 /// This is a simple convenience wrapper over `set_logger`, which takes a
 /// `Box<Log>` rather than a `&'static Log`. See the documentation for
@@ -1015,7 +1015,7 @@ pub fn max_level() -> LevelFilter {
 ///
 /// # Errors
 ///
-/// An error is returned if a logger has already been set.
+/// An error is returned if a loggers has already been set.
 ///
 /// [`set_logger`]: fn.set_logger.html
 #[cfg(feature = "std")]
@@ -1134,9 +1134,9 @@ impl error::Error for ParseLevelError {
     }
 }
 
-/// Returns a reference to the logger.
+/// Returns a reference to the loggers.
 ///
-/// If a logger has not been set, a no-op implementation is returned.
+/// If a loggers has not been set, a no-op implementation is returned.
 pub fn logger() -> &'static Log {
     unsafe {
         if STATE.load(Ordering::SeqCst) != INITIALIZED {
@@ -1153,10 +1153,10 @@ pub fn logger() -> &'static Log {
 /// See the crate level documentation for information on how to configure this.
 ///
 /// This value is checked by the log macros, but not by the `Log`ger returned by
-/// the [`logger`] function. Code that manually calls functions on that value
+/// the [`loggers`] function. Code that manually calls functions on that value
 /// should compare the level against this value.
 ///
-/// [`logger`]: fn.logger.html
+/// [`loggers`]: fn.loggers.html
 pub const STATIC_MAX_LEVEL: LevelFilter = MAX_LEVEL_INNER;
 
 cfg_if! {
@@ -1283,7 +1283,7 @@ mod tests {
         let e = SetLoggerError(());
         assert_eq!(
             e.description(),
-            "attempted to set a logger after the logging system \
+            "attempted to set a loggers after the logging system \
                      was already initialized"
         );
     }

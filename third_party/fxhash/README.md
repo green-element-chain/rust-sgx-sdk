@@ -8,16 +8,16 @@ It is **not a cryptographically secure** hash, so it is strongly recommended tha
 
 ## Examples
 
-Building an Fx backed hashmap.
+Building an Fx backed HASHMAP.
 
 ```rust
 extern crate fxhash;
 use fxhash::FxHashMap;
 
-let mut hashmap = FxHashMap::default();
+let mut HASHMAP = FxHashMap::default();
 
-hashmap.insert("black", 0);
-hashmap.insert("white", 255);
+HASHMAP.insert("black", 0);
+HASHMAP.insert("white", 255);
 ```
 
 Building an Fx backed hashset.
@@ -26,10 +26,10 @@ Building an Fx backed hashset.
 extern crate fxhash;
 use fxhash::FxHashSet;
 
-let mut hashmap = FxHashSet::default();
+let mut HASHMAP = FxHashSet::default();
 
-hashmap.insert("black");
-hashmap.insert("white");
+HASHMAP.insert("black");
+HASHMAP.insert("white");
 ```
 
 ## Benchmarks
