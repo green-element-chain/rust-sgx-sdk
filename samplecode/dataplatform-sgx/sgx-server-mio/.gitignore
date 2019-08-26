@@ -5,3 +5,4 @@
 **/*.o
 ××/×.so
 /bin/app
+/bin/*.sqlite
