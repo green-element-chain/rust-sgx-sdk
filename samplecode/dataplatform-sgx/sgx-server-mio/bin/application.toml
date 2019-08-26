@@ -1,0 +1,48 @@
+# 服务器参数
+[[server_param]]
+port = 3443
+log_level = "info"
+intel_cert_use = false
+intel_ca = "cert/server/ca.crt"
+tls_cert = "cert/server/client.crt"
+tls_key = "cert/server/client.key"
+db_store = "data.sqlite"
+db_conn_max = 30
+
+# 银联请求URL地址
+[[unionpay_tran_url]]
+test_url = false
+front_url = "https://payment.chinapay.com/CTITS/service/rest/page/nref/000000000017/0/0/0/0/0"
+back_url = "https://payment.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+query_url = "https://payment.chinapay.com/CTITS/service/rest/forward/syn/000000000060/0/0/0/0/0"
+# 签约请求URL地址
+sms_url = "https://payment.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+merchant_url = "https://payment.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+merchant_query_url = "https://payment.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+
+[[unionpay_tran_url]]
+test_url = true
+front_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/page/nref/000000000017/0/0/0/0/0"
+back_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+query_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/forward/syn/000000000060/0/0/0/0/0"
+sms_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+merchant_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+merchant_query_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0"
+
+# 银联支付相关参数
+[[unionpay_tran_param]]
+use_test_url = true
+# 前台交易类型，0001为B2C，0002为B2B
+tran_front_type = "0001"
+tran_mer_id = "000091905069034"
+tran_redirect = "http://127.0.0.1:8072/myBills/payment"
+notify_front = "http://127.0.0.1:8085/sgx-server/tran/frontRcvResponse"
+notify_back = "http://127.0.0.1:8085/sgx-server/tran/backRcvResponse"
+notify_sign = "http://127.0.0.1:9000/sgx-server/sign/backRcvResponse"
+remote_ip = "101.87.163.240"
+signature_field = "Signature"
+signature_exclude = "Signature,CertId"
+signature_cert_type = "PKCS12"
+signature_cert_password = "test123456"
+signature_cert_tran = "cert/unionpay/nlkf_payment.pfx"
+signature_cert_verify = "cert/unionpay/cp-test.cer"

@@ -1,0 +1,7 @@
+### Rust template
+.idea
+
+**/Cargo.lock
+**/*.o
+××/×.so
+/bin/app
