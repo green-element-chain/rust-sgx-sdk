@@ -1,2 +1,2 @@
-sqlite3.o
-sqlite3.i
+*.o
+*.i

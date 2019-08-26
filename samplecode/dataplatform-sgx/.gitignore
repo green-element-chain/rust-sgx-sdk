@@ -1,0 +1,10 @@
+### Rust template
+**/.idea
+**/.gradle
+
+**/target
+**/*.a
+**/*.o
+
+**/Cargo.lock
+**/*.rs.bk

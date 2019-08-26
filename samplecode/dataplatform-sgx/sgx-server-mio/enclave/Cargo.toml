@@ -1,0 +1,41 @@
+[package]
+name = "mioRA"
+version = "1.0.0"
+authors = ["Energy"]
+
+[lib]
+name = "miora"
+crate-type = ["staticlib"]
+
+[features]
+default = []
+
+[target.'cfg(not(target_env = "sgx"))'.dependencies]
+sgx_rand    = { path = "../../../../sgx_rand"}
+sgx_tcrypto = { path = "../../../../sgx_tcrypto" }
+sgx_types   = { path = "../../../../sgx_types" }
+sgx_tse     = { path = "../../../../sgx_tse"}
+sgx_tstd    = { path = "../../../../sgx_tstd", features = ["net", "untrusted_fs"] }
+
+[dependencies]
+mio         = { path = "../../../../third_party/mio" }
+log_gel 	= { path =  "../../../../third_party/mesalock-sgx/log-sgx" }
+env_logger_gel  = { path = "../../../../third_party/mesalock-sgx/env_logger-sgx" }
+chrono      = { path = "../../../../third_party/chrono", features = ["clock"] }
+toml		= { path = "../../../../third_party/toml-rs" }
+serde       = { path = "../../../../third_party/serde-rs/serde/serde" }
+serde_json  = { path = "../../../../third_party/serde-rs/json"}
+serde_derive = { path = "../../../../third_party/serde-rs/serde/serde_derive" }
+bit-vec     = { path = "../../../../third_party/bit-vec", default-features = false}
+yasna       = { path = "../../../../third_party/yasna.rs" }
+num-bigint  = { path = "../../../../third_party/num/bigint" }
+rusthex     = { path = "../../../../third_party/gel-sgx/rust-hex" }
+rustls      = { path = "../../../../third_party/rustls" }
+sha1        = { path = "../../../../third_party/gel-sgx/rust-sha1" }
+base64      = { path = "../../../../third_party/rust-base64" }
+webpki      = { path = "../../../../third_party/webpki" }
+webpki-roots= { path = "../../../../third_party/webpki-roots" }
+httparse    = { version = "1.3.2", default-features=false }
+itertools   = { version = "0.7.8" , default-features = false, features = [] }
+rust-sqlite = { path = "../../../../third_party/gel-sgx/rust-sqlite3" }
+sgx_untrusted_time = { path = "../../../../third_party/time" }
