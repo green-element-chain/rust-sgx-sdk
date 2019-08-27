@@ -318,14 +318,17 @@ impl Connection {
                         let mut a = hashmap.get(&student.clientid).unwrap();
                         let mut value = a + 1;
                         hashmap.insert(student.clientid, value);
+                        trace!("bug test0");
                     } else {
                         println!("student id {}", student.clientid);
                         hashmap.insert(student.clientid, 0);
+                        trace!("bug test1");
                     }
                     println!(
                         "Hashmap's value is {}",
                         hashmap.get(&student.clientid).unwrap()
                     );
+                    trace!("bug test2");
 
                     if result.sendstatus == "end" {
                         students.push(result);
@@ -348,14 +351,17 @@ impl Connection {
                         let mut a = hashmap.get(&teacher.clientid).unwrap();
                         let mut value = a + 1;
                         hashmap.insert(teacher.clientid, value);
+                        trace!("bug test0");
                     } else {
                         println!("teacher id {}", teacher.clientid);
                         hashmap.insert(teacher.clientid, 0);
+                        trace!("bug test1");
                     }
                     println!(
                         "Hashmap's value is {}",
                         hashmap.get(&teacher.clientid).unwrap()
                     );
+                    trace!("bug test2");
 
                     if result.sendstatus == "end" {
                         teachers.push(result);

@@ -69,6 +69,7 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
         )
         .unwrap();
+    trace!("prepare data end");
     let changes = tx
         .update(&[
             &teacher.id,
@@ -82,6 +83,7 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
             &teacher.indexid,
         ])
         .unwrap();
+    trace!("udpate data end");
     assert_eq!(changes, 1);
     println!("insert student success");
 }
