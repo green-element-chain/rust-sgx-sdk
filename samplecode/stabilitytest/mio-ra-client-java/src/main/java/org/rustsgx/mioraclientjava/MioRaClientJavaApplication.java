@@ -102,6 +102,7 @@ public class MioRaClientJavaApplication {
                 System.out.println("begin to sleep 3s");
                 Thread.sleep(1000*3);
                 System.out.println("end to sleep 3s");
+                System.out.println("-------------------------------------");
             }
             return 0;
         }catch (Exception e){
