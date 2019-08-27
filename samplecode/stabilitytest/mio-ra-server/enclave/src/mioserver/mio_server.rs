@@ -98,7 +98,6 @@ impl TlsServer {
                 self.connections.remove(&token);
             }
         }
-        println!("number of connections is: {}", self.connections.len());
     }
 }
 
@@ -370,7 +369,7 @@ impl Connection {
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                     }
                 }
-                sqlitedb::opening::base_test(conn, 1);
+                sqlitedb::opening::select_sum(conn, 1);
             }
             ServerMode::Http => {
                 self.send_http_response_once();

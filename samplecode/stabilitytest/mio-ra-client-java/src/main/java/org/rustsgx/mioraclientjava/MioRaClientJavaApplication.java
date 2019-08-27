@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class MioRaClientJavaApplication {
 
     public static void main(String[] args) throws Exception{
-        int threadCount = 2;
+        int threadCount = 1;
         ExecutorService service = Executors.newFixedThreadPool(threadCount);
         for (int i = 0; i < threadCount; i++) {
             service.execute(() -> {
@@ -75,8 +75,8 @@ public class MioRaClientJavaApplication {
             GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
             Gson gson = gsonBuilder.create();
-            for (int i=0;i<10;i++){
-                if(i==9){
+            for (int i=0;i<40000;i++){
+                if(i==39999){
                     Teacher request = new Teacher();
                     request.constructTeacher(i,"end",clientID);
                     out.write(gson.toJson(request).getBytes());
@@ -99,6 +99,9 @@ public class MioRaClientJavaApplication {
                 int getStatus = getReturnData(in,i,clientID);
                 System.out.println(getStatus);
 
+                System.out.println("begin to sleep 3s");
+                Thread.sleep(1000*3);
+                System.out.println("end to sleep 3s");
             }
             return 0;
         }catch (Exception e){

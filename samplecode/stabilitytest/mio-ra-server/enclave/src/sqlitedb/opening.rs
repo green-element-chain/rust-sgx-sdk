@@ -25,3 +25,16 @@ pub fn base_test(conn: &mut DatabaseConnection, existed: uint8_t) {
     teacherdao::base_teacher_ops(conn, &exist_flag);
     studentdao::base_student_ops(conn, &exist_flag);
 }
+
+
+pub fn select_sum(conn: &mut DatabaseConnection, existed: uint8_t) {
+    let mut exist_flag = false;
+    let mut number = 1;
+    if (existed == 1) {
+        exist_flag = true
+    }
+
+    teacherdao::select_teacher_sum(conn);
+    studentdao::select_student_sum(conn);
+    println!("----------------------------------");
+}
