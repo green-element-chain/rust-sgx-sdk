@@ -332,11 +332,11 @@ impl Connection {
 
                     if result.sendstatus == "end" {
                         students.push(result);
-                        sqlitedb::studentdao::insert_student(conn,&mut student);
+                        sqlitedb::studentdao::insert_student(conn, &mut student);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                         self.tls_session.send_close_notify();
                     } else {
-                        sqlitedb::studentdao::insert_student(conn,&mut student);
+                        sqlitedb::studentdao::insert_student(conn, &mut student);
                         let citystring = result.city.clone();
                         students.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
@@ -365,11 +365,11 @@ impl Connection {
 
                     if result.sendstatus == "end" {
                         teachers.push(result);
-                        sqlitedb::teacherdao::insert_teacher(conn,&mut teacher);
+                        sqlitedb::teacherdao::insert_teacher(conn, &mut teacher);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                         self.tls_session.send_close_notify();
                     } else {
-                        sqlitedb::teacherdao::insert_teacher(conn,&mut teacher);
+                        sqlitedb::teacherdao::insert_teacher(conn, &mut teacher);
                         let citystring = result.city.clone();
                         teachers.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();

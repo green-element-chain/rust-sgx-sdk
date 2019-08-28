@@ -21,7 +21,6 @@ pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
         insert_bench_teacher(conn);
         println!("----------------------------------");
 
-
         //step 3: delete student
         println!("----------------------------------");
         delete_teacher(conn);
@@ -63,15 +62,28 @@ pub fn create_teacher_table(conn: &mut DatabaseConnection) {
 }
 
 pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
-    let mut tx = conn
-        .prepare(
-            "INSERT INTO teacher (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
+    let mut tx;
+    let mut txs;
+    loop {
+        tx = conn.prepare(
+            "INSERT INTO student (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
-        )
-        .unwrap();
+        );
+        match tx {
+            Ok(T) => {
+                txs = T;
+                break;
+            }
+            Err(e) => println!("we get a error,retry again!"),
+        }
+    }
     trace!("prepare data end");
-    let changes = tx
-        .update(&[
+
+    let mut change;
+    let mut changes;
+
+    loop {
+        changes = txs.update(&[
             &teacher.id,
             &teacher.street,
             &teacher.city,
@@ -81,14 +93,21 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
             &teacher.age,
             &teacher.clientid,
             &teacher.indexid,
-        ])
-        .unwrap();
+        ]);
+        match changes {
+            Ok(T) => {
+                change = T;
+                break;
+            }
+            Err(e) => println!("we get a error,retry again"),
+        }
+    }
     trace!("udpate data end");
-    assert_eq!(changes, 1);
-    println!("insert student success");
+    assert_eq!(change, 1);
+    println!("insert teacher success");
 }
 
-pub fn delete_teacher(conn: &mut DatabaseConnection){
+pub fn delete_teacher(conn: &mut DatabaseConnection) {
     println!("delete data FROM teacher");
     let mut stmt2 = conn.prepare("DELETE FROM teacher WHERE ID = 5").unwrap();
     let mut results = stmt2.execute();

@@ -87,13 +87,13 @@ use std::vec::Vec;
 mod beans;
 mod logger;
 mod mioserver;
-mod sqlitedb;
 mod sgxcert;
+mod sqlitedb;
 
-use sgxcert::cert;
-use sgxcert::hmac_sha1;
-use sgxcert::hex;
 use mioserver::mio_server;
+use sgxcert::cert;
+use sgxcert::hex;
+use sgxcert::hmac_sha1;
 
 pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
 //pub const PROD_HOSTNAME:&'static str = "as.sgx.trustedservices.intel.com";
@@ -580,9 +580,7 @@ pub extern "C" fn run_server(
     sign_type: sgx_quote_sign_type_t,
     existed: uint8_t,
 ) -> sgx_status_t {
-
     logger::logdemo::log_demo();
-
 
     //call start_db;
     println!("start_db");
@@ -630,7 +628,6 @@ pub extern "C" fn run_server(
 
     let mut mio_cert = certs.clone();
     let mut mio_pk = privkey.clone();
-
 
     mio_server::run_mioserver(max_conn, mio_cert.clone(), mio_pk.clone(), &mut conn);
 

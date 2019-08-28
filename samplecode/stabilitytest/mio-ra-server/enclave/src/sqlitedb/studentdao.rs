@@ -83,8 +83,12 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
             )
             .unwrap();
-        let changes = tx
-            .update(&[
+
+        let mut change;
+        let mut changes;
+
+        loop {
+            changes = tx.update(&[
                 &student.id,
                 &student.street,
                 &student.city,
@@ -94,21 +98,39 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
                 &student.age,
                 &student.clientid,
                 &student.indexid,
-            ])
-            .unwrap();
-        assert_eq!(changes, 1);
+            ]);
+            match changes {
+                Ok(T) => {
+                    change = T;
+                    break;
+                }
+                Err(e) => println!("we get a error,retry again"),
+            }
+        }
+        assert_eq!(change, 1);
     }
     println!("insert bench data success");
 }
 
 pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
-    let mut tx = conn
-        .prepare(
+    let mut tx;
+    let mut txs;
+    loop {
+        tx = conn.prepare(
             "INSERT INTO student (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
-        )
-        .unwrap();
-    let changes = tx
+        );
+        match tx {
+            Ok(T) => {
+                txs = T;
+                break;
+            }
+            Err(e) => println!("we get a error,retry again!"),
+        }
+    }
+
+    trace!("prepare data end");
+    let changes = txs
         .update(&[
             &student.id,
             &student.street,
@@ -121,6 +143,8 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
             &student.indexid,
         ])
         .unwrap();
+
+    trace!("udpate data end");
     assert_eq!(changes, 1);
     println!("insert student success");
 }
@@ -141,7 +165,7 @@ pub fn select_student_sum(conn: &mut DatabaseConnection) {
     }
 }
 
-pub fn delete_student(conn: &mut DatabaseConnection){
+pub fn delete_student(conn: &mut DatabaseConnection) {
     println!("delete data FROM student");
     let mut stmt2 = conn.prepare("DELETE FROM student WHERE ID = 4").unwrap();
     let mut results = stmt2.execute();

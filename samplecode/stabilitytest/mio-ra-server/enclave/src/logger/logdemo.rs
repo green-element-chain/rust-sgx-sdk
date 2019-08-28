@@ -8,5 +8,4 @@ pub fn log_demo() {
     info!("{}", "log test");
     trace!("{}", "log trace test");
     println!("------------------------------------------");
-
 }
