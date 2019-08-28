@@ -84,11 +84,8 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
             )
             .unwrap();
 
-        let mut change;
-        let mut changes;
-
-        loop {
-            changes = tx.update(&[
+        changes = tx
+            .update(&[
                 &student.id,
                 &student.street,
                 &student.city,
@@ -98,15 +95,8 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
                 &student.age,
                 &student.clientid,
                 &student.indexid,
-            ]);
-            match changes {
-                Ok(T) => {
-                    change = T;
-                    break;
-                }
-                Err(e) => println!("we get a error,retry again"),
-            }
-        }
+            ])
+            .unwrap();
         assert_eq!(change, 1);
     }
     println!("insert bench data success");
@@ -130,8 +120,11 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
     }
 
     trace!("prepare data end");
-    let changes = txs
-        .update(&[
+
+    let mut change;
+    let mut changes;
+    loop {
+        let changes = txs.update(&[
             &student.id,
             &student.street,
             &student.city,
@@ -141,11 +134,18 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
             &student.age,
             &student.clientid,
             &student.indexid,
-        ])
-        .unwrap();
+        ]);
 
+        match changes {
+            Ok(T) => {
+                change = T;
+                break;
+            }
+            Err(e) => println!("we get a error,retry again"),
+        }
+    }
     trace!("udpate data end");
-    assert_eq!(changes, 1);
+    assert_eq!(change, 1);
     println!("insert student success");
 }
 
