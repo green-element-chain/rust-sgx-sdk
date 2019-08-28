@@ -7,6 +7,7 @@ use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
 use sqlitedb::sqlops::lose;
+use sqlitedb::sqlite;
 
 pub fn base_student_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     println!("----------------student base operation ------------------");
@@ -84,7 +85,7 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
             )
             .unwrap();
 
-        changes = tx
+        let changes = tx
             .update(&[
                 &student.id,
                 &student.street,
@@ -97,7 +98,7 @@ pub fn insert_bench_student(conn: &mut DatabaseConnection) {
                 &student.indexid,
             ])
             .unwrap();
-        assert_eq!(change, 1);
+        assert_eq!(changes, 1);
     }
     println!("insert bench data success");
 }
@@ -106,6 +107,8 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
     let mut tx;
     let mut txs;
     loop {
+        trace!("create new conn");
+
         tx = conn.prepare(
             "INSERT INTO student (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
@@ -113,18 +116,26 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
         match tx {
             Ok(T) => {
                 txs = T;
-                break;
             }
-            Err(e) => println!("we get a error,retry again!"),
+            Err(e) => {
+                match sqlite::start_db(1) {
+                    Ok(x) => {
+                        *conn = x;
+                        println!("reset conn");
+                        continue
+                    },
+                    _ => panic!("create database failed"),
+                }
+                println!("we get a error in prepare,retry again!");
+            }
         }
-    }
 
-    trace!("prepare data end");
+        trace!("prepare data end");
 
-    let mut change;
-    let mut changes;
-    loop {
-        let changes = txs.update(&[
+        let mut change;
+        let mut changes;
+
+        changes = txs.update(&[
             &student.id,
             &student.street,
             &student.city,
@@ -139,14 +150,21 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
         match changes {
             Ok(T) => {
                 change = T;
+                trace!("udpate data end");
+                assert_eq!(change, 1);
+                println!("insert student success");
                 break;
             }
-            Err(e) => println!("we get a error,retry again"),
+            Err(e) => {
+                trace!("we get a error in update,retry again");
+                println!("insert student failed");
+                break
+            }
         }
+
     }
-    trace!("udpate data end");
-    assert_eq!(change, 1);
-    println!("insert student success");
+
+
 }
 
 pub fn select_student_sum(conn: &mut DatabaseConnection) {

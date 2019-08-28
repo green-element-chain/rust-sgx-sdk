@@ -1,5 +1,6 @@
 use crate::beans::teacher::Teacher;
 use std::prelude::v1::*;
+use crate::sqlitedb::sqlite;
 
 use sqlite3::access;
 use sqlite3::access::flags::Flags;
@@ -7,6 +8,7 @@ use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
 use sqlitedb::sqlops::lose;
+use sqlitedb::sqlite::start_db;
 
 pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     if !&exist_flag {
@@ -72,17 +74,24 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
         match tx {
             Ok(T) => {
                 txs = T;
-                break;
             }
-            Err(e) => println!("we get a error,retry again!"),
+            Err(e) => {
+                match sqlite::start_db(1) {
+                    Ok(x) => {
+                        *conn = x;
+                        println!("reset conn");
+                        continue
+                    },
+                    _ => panic!("create database failed"),
+                }
+                println!("we get a error in prepare,retry again!");
+            }
         }
-    }
-    trace!("prepare data end");
 
-    let mut change;
-    let mut changes;
+        trace!("prepare data end");
+        let mut change;
+        let mut changes;
 
-    loop {
         changes = txs.update(&[
             &teacher.id,
             &teacher.street,
@@ -97,14 +106,20 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
         match changes {
             Ok(T) => {
                 change = T;
+                trace!("udpate data end");
+                assert_eq!(change, 1);
+                println!("insert teacher success");
                 break;
             }
-            Err(e) => println!("we get a error,retry again"),
+            Err(e) => {
+                println!("we get a error in update,retry again");
+                println!("insert teacher failed");
+                break
+            },
         }
     }
-    trace!("udpate data end");
-    assert_eq!(change, 1);
-    println!("insert teacher success");
+
+
 }
 
 pub fn delete_teacher(conn: &mut DatabaseConnection) {

@@ -99,9 +99,9 @@ public class MioRaClientJavaApplication {
                 int getStatus = getReturnData(in,i,clientID);
                 System.out.println(getStatus);
 
-                System.out.println("begin to sleep 3s");
-                Thread.sleep(1000);
-                System.out.println("end to sleep 3s");
+                System.out.println("begin to sleep 0.1s");
+                Thread.sleep(100);
+                System.out.println("end to sleep 0.1s");
                 System.out.println("-------------------------------------");
             }
             return 0;
