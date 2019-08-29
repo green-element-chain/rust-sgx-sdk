@@ -120,7 +120,7 @@ impl FromSql for Vec<u8> {
 }
 
 
-/// Format of sqlite date strings
+/// Format of sqlitedb date strings
 ///
 /// From [Date And Time Functions][lang_datefunc]:
 /// > The datetime() function returns "YYYY-MM-DD HH:MM:SS"

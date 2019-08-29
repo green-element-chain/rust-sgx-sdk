@@ -407,7 +407,7 @@ pub type ParamIx = u16;
 impl PreparedStatement {
     /// Begin executing a statement.
     ///
-    /// An sqlite "row" only lasts until the next call to
+    /// An sqlitedb "row" only lasts until the next call to
     /// `ffi::sqlite3_step()`, so `ResultSet` has a corresponding
     /// lifetime constraint, which prevents it `ResultSet` from
     /// implementing the `Iterator` trait. See the `Query` trait

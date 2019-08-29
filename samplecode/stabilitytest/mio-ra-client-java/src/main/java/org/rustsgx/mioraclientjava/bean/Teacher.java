@@ -44,7 +44,6 @@ public class Teacher {
         this.age = age;
     }
 
-
     public String getOps() {
         return ops;
     }
@@ -92,7 +91,7 @@ public class Teacher {
         this.setStreet("Street"+Integer.toString(i));
         this.setSendstatus(sendStatus);
         this.setClientid(clientId);
-        this.setDatatype("energy_teacher");
+        this.setDatatype("energys_teacher");
         this.setOps("insert");
         this.setIndexid(i);
     }

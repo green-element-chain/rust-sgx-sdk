@@ -298,15 +298,27 @@ impl Connection {
 
                 //default is teacher, datatype = 0
                 //student, datatype = 1
-                let mut datatype = 0;
+                let mut datatype = 2;
 
                 match inputstr.find("energy_teacher") {
-                    Some(T) => println!("datatype is teacher!"),
+                    Some(T) => {
+                        datatype = 0;
+                        println!("datatype is teacher!");
+                    },
                     _ => {
-                        datatype = 1;
-                        println!("datatype is student!")
+                        println!("datatype isn't student!");
                     }
                 }
+                match inputstr.find("energy_student") {
+                    Some(T) => {
+                        datatype = 1;
+                        println!("datatype is student!");
+                    },
+                    _ => {
+                        println!("datatype isn't teacher!")
+                    }
+                }
+
 
                 if datatype == 1 {
                     let result: Student = serde_json::from_str(inputstr).unwrap();
@@ -341,7 +353,7 @@ impl Connection {
                         students.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                     }
-                } else {
+                } else if datatype == 0 {
                     let result: Teacher = serde_json::from_str(inputstr).unwrap();
                     let mut teachers = Vec::new();
 
@@ -374,8 +386,19 @@ impl Connection {
                         teachers.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                     }
+                }else{
+                    sqlitedb::opening::select_sum(conn, 1);
+                    println!("----------------------------------");
+                    match sqlitedb::teacherdao::select_teacher_list(conn) {
+                        Ok(y) => {
+                            println!("SELECT * FROM teacher");
+                            println!("Ok: {:?}", y);
+                        }
+                        Err(oops) => sqlitedb::sqlops::lose(format!("oops!: {:?}", oops).as_ref()),
+                    }
+                    self.tls_session.write("success\n".as_bytes()).unwrap();
                 }
-//                sqlitedb::opening::select_sum(conn, 1);
+//
             }
             ServerMode::Http => {
                 self.send_http_response_once();

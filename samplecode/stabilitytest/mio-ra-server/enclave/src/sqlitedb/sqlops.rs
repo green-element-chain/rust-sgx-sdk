@@ -10,7 +10,7 @@ use sqlite3::{
 
 pub fn get_database_conn() -> SqliteResult<DatabaseConnection> {
     let args: Vec<String> = Vec::new();
-    let usage = "sqlite";
+    let usage = "sqlitedb";
 
     let mut conn;
 

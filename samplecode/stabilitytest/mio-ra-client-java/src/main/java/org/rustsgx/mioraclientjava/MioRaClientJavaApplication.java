@@ -75,14 +75,14 @@ public class MioRaClientJavaApplication {
             GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
             Gson gson = gsonBuilder.create();
-            for (int i=0;i<40000;i++){
-                if(i==39999){
+            for (int i=0;i<4000000;i++){
+                if(i==3999999){
                     Teacher request = new Teacher();
                     request.constructTeacher(i,"end",clientID);
                     out.write(gson.toJson(request).getBytes());
 
                     System.out.println(gson.toJson(request));
-                }else if (i<6){
+                }else if (i<3999999){
                     Teacher request = new Teacher();
                     request.constructTeacher(i,"not end",clientID);
                     out.write(gson.toJson(request).getBytes());

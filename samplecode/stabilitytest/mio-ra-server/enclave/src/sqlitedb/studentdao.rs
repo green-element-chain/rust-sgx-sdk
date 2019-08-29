@@ -1,7 +1,7 @@
 use crate::beans::student::Student;
 use std::prelude::v1::*;
 
-use sqlite3::access;
+use sqlite3::{access, SqliteError};
 use sqlite3::access::flags::Flags;
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
@@ -156,6 +156,7 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
                 break;
             }
             Err(e) => {
+                println!("{}",e);
                 trace!("we get a error in update,retry again");
                 println!("insert student failed");
                 break

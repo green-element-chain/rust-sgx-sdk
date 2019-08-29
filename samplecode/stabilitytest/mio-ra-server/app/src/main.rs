@@ -37,6 +37,14 @@ use sgx_urts::SgxEnclave;
 
 extern crate mio;
 
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
+extern crate serde_json;
+
+mod sqlitedb;
+mod beans;
+
 use std::os::unix::io::{IntoRawFd, AsRawFd};
 use std::fs;
 use std::env;
