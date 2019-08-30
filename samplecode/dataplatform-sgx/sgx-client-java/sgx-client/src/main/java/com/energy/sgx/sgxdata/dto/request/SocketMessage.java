@@ -1,4 +1,4 @@
-package com.energy.sgx.order.dto;
+package com.energy.sgx.sgxdata.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

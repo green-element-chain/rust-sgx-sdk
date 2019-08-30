@@ -1,5 +1,6 @@
-package com.energy.sgx.order.dto;
+package com.energy.sgx.sgxdata.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
@@ -7,6 +8,7 @@ import lombok.Data;
  * @date 2019-08-19
  */
 @Data
+@AllArgsConstructor
 public class ProjectLedgerVo {
 
     /** 项目ID */

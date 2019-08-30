@@ -1,4 +1,4 @@
-package com.energy.sgx.utils;
+package com.energy.utils;
 
 import com.alibaba.fastjson.JSON;
 import java.util.List;
@@ -6,7 +6,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Bryan
- * @date 2019-07-17
+ * @date 2019-08-27
  */
 public class JsonUtil {
 
@@ -21,11 +21,11 @@ public class JsonUtil {
         return null;
     }
 
-    public static <T> T parseJson(String jsonStr, Class<T> clazz) {
+    public static <T> T fromJson(String jsonStr, Class<T> clazz) {
         return JSON.parseObject(jsonStr, clazz);
     }
 
-    public static <T> List<T> parseJsonList(String jsonStr, Class<T> clazz) {
+    public static <T> List<T> fromJsonArray(String jsonStr, Class<T> clazz) {
         return JSON.parseArray(jsonStr, clazz);
     }
 }

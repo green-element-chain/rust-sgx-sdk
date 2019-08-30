@@ -12,9 +12,9 @@ use std::sync::Arc;
 // 服务相关的模块
 pub mod config;
 pub mod handler;
+pub mod response;
 pub mod tlsserver;
 // 业务相关的模块
-pub mod bill;
 pub mod order;
 pub mod project;
 pub mod transaction;

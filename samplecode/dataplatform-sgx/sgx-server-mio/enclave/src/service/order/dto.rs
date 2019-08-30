@@ -3,11 +3,11 @@ use serde_derive::{Deserialize, Serialize};
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OrderData {
-    pub orderId: u32,
-    pub assetType: u16,
-    pub assetId: u32,
-    pub revenue: u32,
-    pub orderTime: u32,
+    pub orderId: i32,
+    pub assetType: i32,
+    pub assetId: i32,
+    pub revenue: i64,
+    pub orderTime: i64,
 }
 
 impl OrderData {

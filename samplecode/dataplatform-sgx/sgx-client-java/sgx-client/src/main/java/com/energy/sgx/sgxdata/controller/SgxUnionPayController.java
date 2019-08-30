@@ -1,6 +1,6 @@
-package com.energy.sgx.order.controller;
+package com.energy.sgx.sgxdata.controller;
 
-import com.energy.sgx.order.service.UnionpayService;
+import com.energy.sgx.sgxdata.service.UnionpayService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;

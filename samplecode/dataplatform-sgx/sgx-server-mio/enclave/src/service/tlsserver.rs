@@ -51,7 +51,10 @@ impl TlsServer {
                 let token = mio::Token(self.next_id);
                 self.next_id += 1;
 
-                self.connections.insert(token, Connection::new(socket, token, tls_session, &self.http_handle));
+                self.connections.insert(
+                    token,
+                    Connection::new(socket, token, tls_session, &self.http_handle));
+
                 self.connections[&token].register(poll);
                 true
             }
@@ -73,8 +76,8 @@ impl TlsServer {
             if self.connections[&token].is_closed() {
                 self.connections.remove(&token);
             }
-            debug!("number of connections is: {}", self.connections.len());
         }
+        debug!("token is {:?}, number of connections is: {}", token, self.connections.len());
     }
 }
 
@@ -92,6 +95,7 @@ struct Connection {
 
 impl Connection {
     fn new(socket: TcpStream, token: mio::Token, tls_session: rustls::ServerSession, handler: &Arc<HttpHandler>) -> Connection {
+        debug!("Connection new enter ...");
         Connection {
             socket,
             token,
@@ -159,7 +163,7 @@ impl Connection {
 
         let rc = self.tls_session.read_to_end(&mut buf);
         if rc.is_err() {
-            debug!("plaintext read failed: {:?}", rc);
+            //debug!("plaintext read failed: {:?}", rc);
             self.closing = true;
             return;
         }

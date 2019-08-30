@@ -25,7 +25,9 @@ public class ServerSgxProperties {
     @PostConstruct
     private void init() {
         //将properties中的classpath替换成绝对路径
-        URL url = this.getClass().getClassLoader().getResource("");
+        URL url = this.getClass().getClassLoader().getResource("application.yml");
+        assert url != null;
+
         String fullPath = new File(url.getPath()).getParent();
         cert.updatePath(fullPath);
     }
@@ -37,20 +39,21 @@ public class ServerSgxProperties {
         private static final String CLASS_RESOURCES = "classpath:";
 
         /** properties in resource file */
+        private Boolean serverTrusted;
         private String algorithm;
         private String certificate;
         private String privateKey;
         private String caFile;
         private String output;
 
-        public void updatePath(String fullPath) {
+        void updatePath(String fullPath) {
             this.certificate = replace(fullPath, certificate);
             this.privateKey = replace(fullPath, privateKey);
             this.caFile = replace(fullPath, caFile);
             this.output = replace(fullPath, output);
         }
 
-        private String replace(String path, String value) {
+        String replace(String path, String value) {
             if (value.contains(CLASS_RESOURCES)) {
                 return value.replace(CLASS_RESOURCES, path);
             }

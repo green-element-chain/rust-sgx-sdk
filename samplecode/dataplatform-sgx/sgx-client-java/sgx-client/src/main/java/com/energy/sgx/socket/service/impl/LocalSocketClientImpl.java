@@ -1,8 +1,8 @@
 package com.energy.sgx.socket.service.impl;
 
-import com.energy.sgx.order.dto.SocketMessage;
+import com.energy.sgx.sgxdata.dto.request.SocketMessage;
 import com.energy.sgx.socket.service.LocalSocketClient;
-import com.energy.sgx.utils.JsonUtil;
+import com.energy.utils.JsonUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +28,12 @@ public class LocalSocketClientImpl extends SSLContextBase implements LocalSocket
     private void afterConstruct() {
         try {
             this.sslContextWithVerify = createSSLContext();
+
+            //临时方案：解决sgx_server第一次restful操作数据库失败的问题
+            SocketMessage message = new SocketMessage("/test", "");
+            String response = this.sendData(message);
+            log.info("init {}", response);
+
         } catch (Exception ex) {
             log.error("Socket client construct exception, message: {}", ex.getMessage());
         }
@@ -45,7 +51,7 @@ public class LocalSocketClientImpl extends SSLContextBase implements LocalSocket
                 return getSocketResponse(socket.getInputStream());
             }
         } catch (Exception e) {
-            log.error("send socket data exception {}", e.getMessage());
+            throw new RuntimeException("send socket data exception: " + e.getMessage());
         } finally {
             try {
                 if (socket != null) {
@@ -58,15 +64,10 @@ public class LocalSocketClientImpl extends SSLContextBase implements LocalSocket
         return null;
     }
 
-    private Socket createSocket() {
-        try {
-            if (sslContextWithVerify != null) {
-                SSLSocketFactory socketFactory = sslContextWithVerify.getSocketFactory();
-                Socket socket = socketFactory.createSocket(getProperties().getHost(), getProperties().getPort());
-                return socket;
-            }
-        } catch (Exception e) {
-            log.error("create socket exception {}", e.getMessage());
+    private Socket createSocket() throws Exception {
+        if (sslContextWithVerify != null) {
+            SSLSocketFactory socketFactory = sslContextWithVerify.getSocketFactory();
+            return socketFactory.createSocket(getProperties().getHost(), getProperties().getPort());
         }
         return null;
     }

@@ -1,5 +1,5 @@
 rootProject.name = 'sgx-client-java'
 include ':framework'
 include ':framework:swagger-spring-boot-starter'
-include ':framework:tool-spring-boot-starter'
+include ':framework:utils-spring-boot-starter'
 include ':sgx-client'

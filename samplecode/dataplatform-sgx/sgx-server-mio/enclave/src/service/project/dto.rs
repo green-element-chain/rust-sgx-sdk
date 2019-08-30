@@ -6,19 +6,25 @@ use std::vec::Vec;
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
+pub struct ProjectID {
+    pub id: u32,
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ProjectAsset {
-    pub projectId: i64,
-    pub assets: Vec<i64>,
+    pub projectId: u32,
+    pub assets: Vec<u32>,
 }
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProjectLedger {
-    pub projectId: u32,
-    pub billDate: u8,
+    pub projectId: i32,
+    pub billDate: i32,
     pub billStartDate: String,
-    pub billCycle: u8,
-    pub ledgerDate: u16,
+    pub billCycle: i32,
+    pub ledgerDate: i32,
     pub ledgerContent: String,
 }
 
@@ -83,6 +89,32 @@ impl ProjectBillTimeRange {
         ProjectBillTimeRange {
             bill_start_time: start_time,
             bill_end_time: end_time,
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ProjectBill {
+    pub id: i32,
+    pub projectId: i32,
+    pub beginDate: String,
+    pub endDate: String,
+    pub amount: i64,
+    pub orderNo: String,
+    pub status: i32,
+}
+
+impl ProjectBill {
+    pub fn new() -> ProjectBill {
+        ProjectBill {
+            id: 0,
+            projectId: 0,
+            beginDate: String::from(""),
+            endDate: String::from(""),
+            amount: 0,
+            orderNo: String::from(""),
+            status: 0,
         }
     }
 }

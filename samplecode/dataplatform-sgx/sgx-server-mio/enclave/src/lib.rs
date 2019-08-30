@@ -52,7 +52,7 @@ pub extern "C" fn run_server(socket_fd: c_int) -> sgx_status_t {
     let (file, path) = get_application_config();
     let app_config = ApplicationConfig::new(file.as_str(), path);
     logger::init_env_log(app_config.server_param().log_level());
-    debug!("{:?}", app_config);
+    //debug!("{:?}", app_config);
 
     let server = HttpServer::new(Rc::new(app_config));
     return server.start();
