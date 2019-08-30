@@ -8,8 +8,9 @@ buildscript {
     }
 }
 dependencies {
-    compile 'com.energy:swagger-spring-boot-starter:0.1.7-SNAPSHOT'
+    //compile 'com.energy:swagger-spring-boot-starter:0.1.7-SNAPSHOT'
+    compile project(':framework:swagger-spring-boot-starter')
+    compile project(':framework:utils-spring-boot-starter')
     compile 'org.apache.httpcomponents:httpclient:4.5.6'
-    compile 'com.alibaba:fastjson:1.2.58'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.58'
 }

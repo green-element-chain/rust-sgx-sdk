@@ -1,4 +1,4 @@
-package com.energy.sgx.order.service;
+package com.energy.sgx.sgxdata.service;
 
 /**
  * @author Bryan

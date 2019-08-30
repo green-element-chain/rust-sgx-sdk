@@ -1,6 +1,6 @@
 package com.energy.sgx.socket.service;
 
-import com.energy.sgx.order.dto.SocketMessage;
+import com.energy.sgx.sgxdata.dto.request.SocketMessage;
 import javax.validation.constraints.NotNull;
 
 /**

@@ -1,9 +1,9 @@
-package com.energy.sgx.order.service.impl;
+package com.energy.sgx.sgxdata.service.impl;
 
-import com.energy.sgx.order.dto.SocketMessage;
-import com.energy.sgx.order.service.UnionpayService;
+import com.energy.sgx.sgxdata.dto.request.SocketMessage;
+import com.energy.sgx.sgxdata.service.UnionpayService;
 import com.energy.sgx.socket.service.LocalSocketClient;
-import com.energy.sgx.utils.JsonUtil;
+import com.energy.utils.JsonUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

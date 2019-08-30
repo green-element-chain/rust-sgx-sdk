@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/data_platform_iot?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOver
+    url: jdbc:mysql://192.168.1.22:3306/data_platform_iot?characterEncoding=utf8&useSSL=false&autoReconnect=true&failOver
     username: root
     password: Energy@123456
   jpa:
@@ -21,11 +21,12 @@ server:
     host: 127.0.0.1
     port: 3443
     cert:
+      server-Trusted: false
       algorithm: EC
-      certificate: classpath:/resources/cert/client.crt
-      private-key: classpath:/resources/cert/client.pkcs8
-      ca-file: classpath:/resources/cert/AttestationReportSigningCACert.pem
-      output: classpath:/resources/cert
+      certificate: classpath:/cert/client.crt
+      private-key: classpath:/cert/client.pkcs8
+      ca-file: classpath:/cert/AttestationReportSigningCACert.pem
+      output: classpath:/cert
 logging:
   level:
     root: INFO

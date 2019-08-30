@@ -16,4 +16,6 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: "$swaggerVersion"
     compile group: 'io.swagger', name: 'swagger-annotations', version: "$swaggerModelsVersion"
     compile group: 'io.swagger', name: 'swagger-models', version: "$swaggerModelsVersion"
+    compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+    compile "org.springframework.boot:spring-boot-configuration-processor:$springBootVersion"
 }

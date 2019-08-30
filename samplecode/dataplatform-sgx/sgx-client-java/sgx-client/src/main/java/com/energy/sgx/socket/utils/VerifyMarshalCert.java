@@ -4,7 +4,7 @@ import com.energy.sgx.socket.dto.PlatformInfoBlob;
 import com.energy.sgx.socket.dto.QuoteReportData;
 import com.energy.sgx.socket.dto.ServerCertInfo;
 import com.energy.sgx.socket.dto.SgxQuoteReport;
-import com.energy.sgx.utils.JsonUtil;
+import com.energy.utils.JsonUtil;
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 import java.io.ByteArrayInputStream;
 import java.io.FileReader;
@@ -116,7 +116,7 @@ public class VerifyMarshalCert {
         for (int i = 0; i < attnReportRaw.length; i++) {
             attReportJson.append((char) attnReportRaw[i]);
         }
-        SgxQuoteReport sgxQr = JsonUtil.parseJson(attReportJson.toString(), SgxQuoteReport.class);
+        SgxQuoteReport sgxQr = JsonUtil.fromJson(attReportJson.toString(), SgxQuoteReport.class);
 
         //1 Check timestamp is within 24H
         if (sgxQr.getTimestamp().length() != 0) {
