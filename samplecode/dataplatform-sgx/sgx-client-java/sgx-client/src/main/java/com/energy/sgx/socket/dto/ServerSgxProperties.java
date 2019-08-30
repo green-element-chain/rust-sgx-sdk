@@ -5,6 +5,7 @@ import java.net.URL;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Bryan
  * @date 2019-07-17
  */
+@Slf4j
 @Data
 @Configuration
 @ConfigurationProperties(value = "server.sgx")
@@ -26,6 +28,7 @@ public class ServerSgxProperties {
     private void init() {
         //将properties中的classpath替换成绝对路径
         URL url = this.getClass().getClassLoader().getResource("application.yml");
+        log.info("path: {}", url);
         assert url != null;
 
         String fullPath = new File(url.getPath()).getParent();
@@ -47,6 +50,7 @@ public class ServerSgxProperties {
         private String output;
 
         void updatePath(String fullPath) {
+            log.info("path1: {}", fullPath);
             this.certificate = replace(fullPath, certificate);
             this.privateKey = replace(fullPath, privateKey);
             this.caFile = replace(fullPath, caFile);

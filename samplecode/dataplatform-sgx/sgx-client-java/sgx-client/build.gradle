@@ -1,4 +1,5 @@
 //archivesBaseName = 'sgx-client'
+apply plugin: 'org.springframework.boot'
 buildscript {
     repositories {
         maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
