@@ -1,8 +1,22 @@
-use chrono::{NaiveDate, NaiveDateTime, Timelike};
+use chrono::{NaiveDate, NaiveDateTime};
 use chrono::Local;
 
 use std::ops::Add;
 use std::string::{String, ToString};
+
+pub fn now() -> NaiveDateTime {
+    Local::now().naive_local()
+}
+
+pub fn now_str() -> String {
+    let local_time = now();
+    format(&local_time)
+}
+
+//时间格式：“2019-08-30 10:20:50”
+pub fn format(time: &NaiveDateTime) -> String {
+    time.format("%F %H:%M:%S").to_string()
+}
 
 pub fn parse_native_date_from_str(date: String) -> NaiveDate {
     let date_time = date.add(" 00:00:00");
@@ -18,12 +32,11 @@ pub fn parse_native_time_from_str(date: String) -> NaiveDateTime {
     resp_native_date
 }
 
-pub fn parse_native_time_from_nanosecond(nano: u32) -> NaiveDateTime {
-    let now = Local::now().naive_local();
-    now.with_nanosecond(nano).unwrap()
+pub fn parse_native_time_from_seconds(secs: i64) -> NaiveDateTime {
+    NaiveDateTime::from_timestamp(secs, 0)
 }
 
-pub fn get_order_no(time: NaiveDateTime) -> String {
+pub fn get_order_no(time: &NaiveDateTime) -> String {
     let order_no = time.format("%Y%m%d%H%M%S%3f").to_string();
     //let number = rand::thread_rng().gen_range(65, 90);
     order_no

@@ -16,6 +16,7 @@ pub struct ServerParam {
     tls_key: Option<String>,
     db_store: Option<String>,
     db_conn_max: Option<u16>,
+    db_timezone: Option<i32>,
 }
 
 impl ServerParam {
@@ -49,6 +50,10 @@ impl ServerParam {
 
     pub fn get_db_max_conn(&self) -> u16 {
         self.db_conn_max.unwrap_or(30)
+    }
+
+    pub fn get_timezone(&self) -> i32 {
+        self.db_timezone.unwrap_or(28800)
     }
 }
 

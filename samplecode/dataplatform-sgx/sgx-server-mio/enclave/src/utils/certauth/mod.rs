@@ -20,9 +20,9 @@ pub mod cert;
 pub mod hex;
 pub mod hmac_sha1;
 
-pub const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
-pub const SIGRL_SUFFIX: &'static str = "/attestation/sgx/v3/sigrl/";
-pub const REPORT_SUFFIX: &'static str = "/attestation/sgx/v3/report";
+const DEV_HOSTNAME: &'static str = "test-as.sgx.trustedservices.intel.com";
+const SIGRL_SUFFIX: &'static str = "/attestation/sgx/v3/sigrl/";
+const REPORT_SUFFIX: &'static str = "/attestation/sgx/v3/report";
 
 extern "C" {
     pub fn ocall_sgx_init_quote(
@@ -142,7 +142,9 @@ fn create_attestation_report(
     // (1.5) get sigrl
     let mut ias_sock: i32 = 0;
 
-    let res = unsafe { ocall_get_ias_socket(&mut rt as *mut sgx_status_t, &mut ias_sock as *mut i32) };
+    let res = unsafe {
+        ocall_get_ias_socket(&mut rt as *mut sgx_status_t, &mut ias_sock as *mut i32)
+    };
 
     if res != sgx_status_t::SGX_SUCCESS {
         return Err(res);
@@ -206,7 +208,6 @@ fn create_attestation_report(
     };
     let p_report = (&rep.unwrap()) as *const sgx_report_t;
     let quote_type = sgx_quote_sign_type_t::SGX_LINKABLE_SIGNATURE;
-    ;
 
     let spid: sgx_spid_t = load_spid("spid.txt");
 
@@ -384,12 +385,13 @@ fn get_report_from_intel(fd: c_int, quote: Vec<u8>, server_param: &ServerParam) 
 
 fn make_ias_client_config(server_param: &ServerParam) -> rustls::ClientConfig {
     let mut config = rustls::ClientConfig::new();
-
-    config.root_store.add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
+    config
+        .root_store
+        .add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
 
     let certs = file::load_certs(server_param.get_cert().as_str());
-    let privkey = file::load_private_key(server_param.get_key().as_str());
-    config.set_single_client_cert(certs, privkey);
+    let private_key = file::load_private_key(server_param.get_key().as_str());
+    config.set_single_client_cert(certs, private_key);
 
     config
 }

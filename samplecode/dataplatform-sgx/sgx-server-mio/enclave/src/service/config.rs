@@ -22,7 +22,6 @@ impl TlsServerConfig {
         if self.tls_config.is_none() {
             let server_param = self.config.server_param();
             if server_param.intel_cert_use() {
-                println!("test");
                 certauth::get_intel_cert(server_param);
                 return None;
             } else {

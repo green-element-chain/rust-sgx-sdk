@@ -3,13 +3,14 @@
 #[allow(unused_variables)]
 use config::ApplicationConfig;
 use std::rc::Rc;
-use std::string::{String, ToString};
+use std::string::String;
 use std::sync::Arc;
 
 use crate::utils::db::DbContext;
 
 //use self::dto::*;
 
+pub mod bill;
 pub mod dto;
 
 #[derive(Clone)]
@@ -33,7 +34,6 @@ impl TransactionMgr {
         let sql = "
         create table if not exists project_bill_payment (
             id integer primary key autoincrement,
-            bill_id int not null,
             order_no varchar(255) not null,
             amount int not null,
             tran_method smallint not null,
@@ -43,8 +43,8 @@ impl TransactionMgr {
             resp_msg varchar(255) null,
             query_times int not null,
             acq_seq_id varchar(18) null,
-            create_at datetime not null default (datetime('now', 'localtime')),
-            update_at datetime not null default (datetime('now', 'localtime'))
+            create_at datetime not null default (datetime('now')),
+            update_at datetime not null default (datetime('now'))
         );
         create trigger if not exists [BillPaymentLastUpdateTime]
             after update
@@ -52,32 +52,38 @@ impl TransactionMgr {
             for each row
             when NEW.update_at <= OLD.update_at
         begin
-            update project_bill_payment set update_at=(datetime('now', 'localtime')) where id=OLD.id;
+            update project_bill_payment set update_at=(datetime('now')) where id=OLD.id;
         end;";
         self.db_context.execute(sql);
     }
 
     pub fn payment(&self, param: String) -> String {
+        let local_now = chrono::Local::now();
+        let tz = chrono::FixedOffset::east(8 * 3600);
+        let test = format!("{}", tz);
+        info!("test {}", test);
+        info!("local now {} {}", local_now, local_now.naive_local());
+
         /*let client = HttpClient::new(self.config.clone());
         client.send_get("channel");*/
-        "payment from server".to_string()
+        String::from("payment from server")
     }
 
     pub fn payment_b2b(&self, param: String) -> String {
         /*let client = HttpClient::new(self.config.clone());
         client.send_get("channel");*/
-        "payment_b2b from server".to_string()
+        String::from("payment_b2b from server")
     }
 
     pub fn notify(&self, param: String) -> String {
         /*let client = HttpClient::new(self.config.clone());
         client.send_get("channel");*/
-        "notify from server".to_string()
+        String::from("notify from server")
     }
 
     pub fn notify_b2b(&self, param: String) -> String {
         /*let client = HttpClient::new(self.config.clone());
         client.send_get("channel");*/
-        "notify_b2b from server".to_string()
+        String::from("notify_b2b from server")
     }
 }

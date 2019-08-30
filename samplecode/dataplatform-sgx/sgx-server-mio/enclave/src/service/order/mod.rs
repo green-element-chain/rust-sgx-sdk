@@ -1,8 +1,9 @@
 //! 资产的订单数据管理
 use chrono::NaiveDateTime;
-use sqlite3::{PreparedStatement, QueryFold};
+use sqlite3::{PreparedStatement, QueryFold, SqliteError, SqliteResult, ResultRowAccess};
 
-use std::string::{String, ToString};
+use service::response::{LastUpdatedTime, SgxServerResponse};
+use std::string::String;
 use std::sync::Arc;
 use std::vec::Vec;
 
@@ -31,55 +32,77 @@ impl OrderMgr {
     fn init_table(&self) {
         let sql = "
         create table if not exists asset_order (
-            order_id int not null primary key,
+            order_id integer not null primary key,
             asset_type int not null,
             asset_id int not null,
             revenue int not null,
-            order_time datetime not null
+            order_time int not null,
+            update_at datetime not null default (datetime('now'))
         );";
-        self.db_context.execute(sql);
+        self.db_context.exec(sql);
     }
 
-    pub fn get_order(&self, param: String) -> String {
-        let mut data_vec: Vec<OrderData> = Vec::new();
-        let mut statement: PreparedStatement = self.db_context.query("select * from asset_order");
-        loop {
-            match statement.execute().step() {
-                Err(e) => {
-                    error!("failed to query asset_order {}", e);
-                    break;
-                }
-                Ok(None) => { break; }
-                Ok(Some(ref mut row)) => {
-                    let mut data: OrderData = OrderData::new();
-                    data.assetId = row.column_int(0) as u32;
-                    data.assetType = row.column_int(1) as u16;
-                    data.assetId = row.column_int(2) as u32;
-                    data.revenue = row.column_int(3) as u32;
-                    data.orderTime = row.column_int(4) as u32;
-                    data_vec.push(data);
-                }
-            }
-        }
-        let data_string = serde_json::to_string(&data_vec).unwrap();
-        let resp_data = format!("read order data from server:({})\r\n{}", data_vec.len(), data_string);
-        resp_data
+    pub fn restful_get_updated_time(&self) -> String {
+        let table_name = "asset_order";
+        let time: Option<String> = self.db_context.get_last_update_time_local(table_name);
+        LastUpdatedTime::local_updated_time_json_str(time)
     }
 
-    pub fn set_order(&self, param: String) -> String {
-        let orders: Vec<OrderData> = serde_json::from_str(param.as_str()).expect("Can't deserialize");
+    pub fn restful_set_asset_order(&self, _param: String) -> String {
+        let msg = "set_asset_order data to sgx server";
+        let orders: Vec<OrderData> = serde_json::from_str(_param.as_str()).expect("Can't deserialize");
+
+        let update_time_at = time::now_str();
         for data in orders.iter() {
-            let order_time: NaiveDateTime = time::parse_native_time_from_nanosecond(data.orderTime);
-            let sql = format!(
-                "insert into asset_order(order_id,asset_type,asset_id,revenue,order_time) values({},{},{},{},'{}')",
+            let order_time: NaiveDateTime = time::parse_native_time_from_seconds(data.orderTime as i64);
+            let sql = format!("insert into asset_order(\
+                order_id,asset_type,asset_id,revenue,order_time,update_at\
+                ) values({},{},{},{},'{}','{}')",
                 data.orderId,
                 data.assetType,
                 data.assetId,
                 data.revenue,
-                order_time
+                order_time.timestamp(),
+                update_time_at
             );
-            self.db_context.execute(sql.as_str());
+            if !self.db_context.execute(sql.as_str()) {
+                return SgxServerResponse::failed(format!("{} {}", msg, "failed."));
+            }
         }
-        "write order data to server".to_string()
+        SgxServerResponse::success(format!("{} {}", msg, "success."))
+    }
+
+    pub fn restful_get_asset_order(&self, param: String) -> String {
+        let msg = "get_asset_order data from sgx server";
+        let sql = "select order_id,asset_type,asset_id,revenue,order_time \
+            from asset_order order by order_time desc limit 50";
+
+        let statement: SqliteResult<PreparedStatement> = self.db_context.query(sql);
+        if statement.is_err() {
+            return SgxServerResponse::failed(format!("{} {}", msg, "failed."));
+        }
+
+        let snoc = |x, mut xs: Vec<_>| {
+            xs.push(x);
+            xs
+        };
+        let result: Result<Vec<OrderData>, SqliteError> = statement.unwrap().query_fold(
+            &[], vec!(), |row, data_vec| {
+                Ok(snoc(OrderData {
+                    orderId: row.get(0),
+                    assetType: row.get(1),
+                    assetId: row.get(2),
+                    revenue: row.get(3),
+                    orderTime: row.get(4),
+                }, data_vec))
+            });
+        let asset_orders: Vec<OrderData> = match result {
+            Ok(v) => { v }
+            Err(e) => {
+                error!("failed to query asset_order {:?}", e);
+                Vec::new()
+            }
+        };
+        return SgxServerResponse::success(format!("{}", serde_json::to_string(&asset_orders).unwrap()));
     }
 }
