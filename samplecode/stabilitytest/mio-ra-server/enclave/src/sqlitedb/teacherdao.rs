@@ -1,14 +1,14 @@
 use crate::beans::teacher::Teacher;
-use std::prelude::v1::*;
 use crate::sqlitedb::sqlite;
+use std::prelude::v1::*;
 
 use sqlite3::access;
 use sqlite3::access::flags::Flags;
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
-use sqlitedb::sqlops::lose;
 use sqlitedb::sqlite::start_db;
+use sqlitedb::sqlops::lose;
 
 pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     if !&exist_flag {
@@ -80,8 +80,8 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
                     Ok(x) => {
                         *conn = x;
                         println!("reset conn");
-                        continue
-                    },
+                        continue;
+                    }
                     _ => panic!("create database failed"),
                 }
                 println!("we get a error in prepare,retry again!");
@@ -114,12 +114,10 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
             Err(e) => {
                 println!("we get a error in update,retry again");
                 println!("insert teacher failed");
-                break
-            },
+                break;
+            }
         }
     }
-
-
 }
 
 pub fn delete_teacher(conn: &mut DatabaseConnection) {
@@ -185,9 +183,9 @@ pub fn select_teacher_sum(conn: &mut DatabaseConnection) {
             println!("clientid sum is {}", id);
         }
         Err(oops) => {
-            println!("{}",oops);
+            println!("{}", oops);
             panic!(oops);
-        },
+        }
         Ok(None) => panic!("where did our row go?"),
     }
 }

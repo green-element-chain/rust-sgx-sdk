@@ -132,7 +132,7 @@ pub fn delete_teacher(conn: &mut DatabaseConnection) {
 }
 
 pub fn insert_bench_teacher(conn: &mut DatabaseConnection) {
-    for (_i, j) in (0..500).enumerate() {
+    for (_i, j) in (0..5).enumerate() {
         println!("the {} data",j);
         let teacher = Teacher {
             id: j,

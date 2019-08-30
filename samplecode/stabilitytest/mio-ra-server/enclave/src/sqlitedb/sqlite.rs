@@ -21,7 +21,7 @@ pub fn start_db(existed: uint8_t) -> SqliteResult<DatabaseConnection> {
             conn = x;
             conn.busy_timeout(Duration::seconds(3));
             println!("sqlitedb opening test:");
-//            opening::base_test(&mut conn, existed);
+            //            opening::base_test(&mut conn, existed);
             Ok(conn)
         }
         _ => {

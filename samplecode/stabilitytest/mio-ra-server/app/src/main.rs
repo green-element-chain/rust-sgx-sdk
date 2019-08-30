@@ -105,6 +105,13 @@ fn ocall_get_ias_socket(ret_fd : *mut c_int) -> sgx_status_t {
 
 #[no_mangle]
 pub extern "C"
+fn ocall_empty() -> sgx_status_t {
+    println!("ocall_empty");
+    sgx_status_t::SGX_SUCCESS
+}
+
+#[no_mangle]
+pub extern "C"
 fn ocall_get_quote (p_sigrl            : *const u8,
                     sigrl_len          : u32,
                     p_report           : *const sgx_report_t,

@@ -63,7 +63,7 @@ pub fn create_student_table(conn: &mut DatabaseConnection) {
 }
 
 pub fn insert_bench_student(conn: &mut DatabaseConnection) {
-    for (_i, j) in (0..500).enumerate() {
+    for (_i, j) in (0..5).enumerate() {
         println!("the {} data",j);
         let student = Student {
             id: j,

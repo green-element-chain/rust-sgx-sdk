@@ -1,13 +1,13 @@
 use crate::beans::student::Student;
 use std::prelude::v1::*;
 
-use sqlite3::{access, SqliteError};
 use sqlite3::access::flags::Flags;
+use sqlite3::{access, SqliteError};
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
-use sqlitedb::sqlops::lose;
 use sqlitedb::sqlite;
+use sqlitedb::sqlops::lose;
 
 pub fn base_student_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     println!("----------------student base operation ------------------");
@@ -122,8 +122,8 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
                     Ok(x) => {
                         *conn = x;
                         println!("reset conn");
-                        continue
-                    },
+                        continue;
+                    }
                     _ => panic!("create database failed"),
                 }
                 println!("we get a error in prepare,retry again!");
@@ -156,16 +156,13 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
                 break;
             }
             Err(e) => {
-                println!("{}",e);
+                println!("{}", e);
                 trace!("we get a error in update,retry again");
                 println!("insert student failed");
-                break
+                break;
             }
         }
-
     }
-
-
 }
 
 pub fn select_student_sum(conn: &mut DatabaseConnection) {

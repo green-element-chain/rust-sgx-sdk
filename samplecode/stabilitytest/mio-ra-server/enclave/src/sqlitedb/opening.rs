@@ -34,6 +34,6 @@ pub fn select_sum(conn: &mut DatabaseConnection, existed: uint8_t) {
     }
 
     teacherdao::select_teacher_sum(conn);
-//    studentdao::select_student_sum(conn);
+    //    studentdao::select_student_sum(conn);
     println!("----------------------------------");
 }

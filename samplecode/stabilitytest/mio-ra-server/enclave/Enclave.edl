@@ -66,6 +66,9 @@ enclave {
                        int32_t enclaveTrusted,
                        [out] sgx_update_info_bit_t * update_info);
 
+
+        sgx_status_t ocall_empty(void);
+
         void ocall_println_string([in, string] const char *str);
         void ocall_print_string([in, string] const char *str);
         void ocall_print_error([in, string] const char *str);

@@ -3,6 +3,7 @@ use crate::beans::teacher::Teacher;
 use mio::net::{TcpListener, TcpStream};
 use rustls::{NoClientAuth, ServerConfig, Session};
 use sgx_types::uint8_t;
+use sgx_types::*;
 use sqlite3::DatabaseConnection;
 use sqlitedb;
 use std::collections::HashMap;
@@ -16,6 +17,11 @@ use std::vec::Vec;
 
 // Token for our listening socket.
 const LISTENER: mio::Token = mio::Token(0);
+
+extern "C" {
+    // OCALLS
+    pub fn ocall_empty() -> sgx_status_t;
+}
 
 // Which mode the server operates in.
 #[derive(Clone)]
@@ -300,11 +306,17 @@ impl Connection {
                 //student, datatype = 1
                 let mut datatype = 2;
 
+                let result = unsafe { ocall_empty() };
+
+                if result != sgx_status_t::SGX_SUCCESS {
+                    panic!("not sgx success");
+                }
+
                 match inputstr.find("energy_teacher") {
                     Some(T) => {
                         datatype = 0;
                         println!("datatype is teacher!");
-                    },
+                    }
                     _ => {
                         println!("datatype isn't student!");
                     }
@@ -313,12 +325,9 @@ impl Connection {
                     Some(T) => {
                         datatype = 1;
                         println!("datatype is student!");
-                    },
-                    _ => {
-                        println!("datatype isn't teacher!")
                     }
+                    _ => println!("datatype isn't teacher!"),
                 }
-
 
                 if datatype == 1 {
                     let result: Student = serde_json::from_str(inputstr).unwrap();
@@ -386,7 +395,7 @@ impl Connection {
                         teachers.push(result);
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                     }
-                }else{
+                } else {
                     sqlitedb::opening::select_sum(conn, 1);
                     println!("----------------------------------");
                     match sqlitedb::teacherdao::select_teacher_list(conn) {
@@ -398,7 +407,7 @@ impl Connection {
                     }
                     self.tls_session.write("success\n".as_bytes()).unwrap();
                 }
-//
+                //
             }
             ServerMode::Http => {
                 self.send_http_response_once();
