@@ -1,9 +1,7 @@
 use crate::beans::teacher::Teacher;
-use std::prelude::v1::*;
 use crate::sqlitedb::sqlite;
 
 use sqlite3::access;
-use sqlite3::access::flags::Flags;
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
@@ -88,7 +86,6 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
             }
         }
 
-        trace!("prepare data end");
         let mut change;
         let mut changes;
 
@@ -106,7 +103,6 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
         match changes {
             Ok(T) => {
                 change = T;
-                trace!("udpate data end");
                 assert_eq!(change, 1);
                 println!("insert teacher success");
                 break;
@@ -136,7 +132,8 @@ pub fn delete_teacher(conn: &mut DatabaseConnection) {
 }
 
 pub fn insert_bench_teacher(conn: &mut DatabaseConnection) {
-    for (_i, j) in (0..10).enumerate() {
+    for (_i, j) in (0..500).enumerate() {
+        println!("the {} data",j);
         let teacher = Teacher {
             id: j,
             street: "streett".to_string(),
@@ -184,10 +181,7 @@ pub fn select_teacher_sum(conn: &mut DatabaseConnection) {
             let id = row1.column_int(0);
             println!("clientid sum is {}", id);
         }
-        Err(oops) => {
-            println!("{}",oops);
-            panic!(oops);
-        },
+        Err(oops) => panic!(oops),
         Ok(None) => panic!("where did our row go?"),
     }
 }

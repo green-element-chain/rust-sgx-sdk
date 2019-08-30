@@ -32,6 +32,8 @@
 extern crate sgx_types;
 extern crate sgx_urts;
 extern crate dirs;
+extern crate sqlite3;
+
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
 
@@ -241,6 +243,15 @@ fn main() {
             println!("dbfile existed");
         }
     }
+
+    //call start_db;
+    println!("start_db");
+    let mut conn;
+    match sqlitedb::sqlite::start_db(existed) {
+        Ok(x) => conn = x,
+        _ => panic!("create database failed"),
+    }
+
 
 
     let mut args: Vec<_> = env::args().collect();

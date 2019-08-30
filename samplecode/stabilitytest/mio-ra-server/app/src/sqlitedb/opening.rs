@@ -1,17 +1,14 @@
 use sgx_types::*;
 use std::default::Default;
-use std::prelude::v1::*;
-use std::vec::Vec;
 
 use crate::sqlitedb::sqlops;
 use crate::sqlitedb::{studentdao, teacherdao};
 use sqlite3::access;
-use sqlite3::access::flags::Flags;
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
 use sqlitedb::sqlops::lose;
-use std::untrusted::fs::File;
+use std::fs::File;
 
 use crate::beans::teacher::Teacher;
 
@@ -34,6 +31,6 @@ pub fn select_sum(conn: &mut DatabaseConnection, existed: uint8_t) {
     }
 
     teacherdao::select_teacher_sum(conn);
-//    studentdao::select_student_sum(conn);
+    studentdao::select_student_sum(conn);
     println!("----------------------------------");
 }
