@@ -4,9 +4,8 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.CharBuffer;
@@ -22,11 +21,13 @@ import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Bryan
  * @date 2019-07-17
  */
+@Slf4j
 public class PemReader {
 
     private static final Pattern CERT_PATTERN = Pattern.compile(
@@ -43,9 +44,9 @@ public class PemReader {
     private static final Pattern PEM_PATTERN = Pattern.compile(
         "-+BEGIN PRIVATE KEY-+\n([a-z0-9+/=\\r\\n]+)\n-+END PRIVATE KEY-+");
 
-    public static List<X509Certificate> readCertificate(File certificateFile)
+    public List<X509Certificate> readCertificate(InputStream is)
         throws IOException, GeneralSecurityException {
-        String contents = readFile(certificateFile);
+        String contents = readFile(is);
         Matcher matcher = CERT_PATTERN.matcher(contents);
 
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
@@ -60,10 +61,10 @@ public class PemReader {
         return certificates;
     }
 
-    private static String readFile(File file) throws IOException {
+    private String readFile(InputStream is) throws IOException {
         Reader reader = null;
         try {
-            reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.US_ASCII);
+            reader = new InputStreamReader(is, StandardCharsets.US_ASCII);
             StringBuilder stringBuilder = new StringBuilder();
             CharBuffer buffer = CharBuffer.allocate(2048);
             while (reader.read(buffer) != -1) {
@@ -72,7 +73,6 @@ public class PemReader {
                 buffer.clear();
             }
             return stringBuilder.toString();
-
         } finally {
             if (reader != null) {
                 reader.close();
@@ -80,16 +80,16 @@ public class PemReader {
         }
     }
 
-    private static byte[] base64Decode(String base64) {
+    private byte[] base64Decode(String base64) {
         return Base64.getMimeDecoder().decode(base64.getBytes(StandardCharsets.US_ASCII));
     }
 
-    public static PrivateKey getPemPrivateKey(String filename, String algorithm) throws Exception {
+    public PrivateKey getPemPrivateKey(InputStream is, String algorithm) throws Exception {
         DataInputStream dataInputStream = null;
         try {
-            File file = new File(filename);
-            dataInputStream = new DataInputStream(new FileInputStream(file));
-            byte[] keyBytes = new byte[(int) file.length()];
+            int count = is.available();
+            dataInputStream = new DataInputStream(is);
+            byte[] keyBytes = new byte[count];
             dataInputStream.readFully(keyBytes);
 
             String privateKeyPem = new String(keyBytes)

@@ -1,7 +1,7 @@
 package com.energy.sgx.socket.dto;
 
-import java.io.File;
-import java.net.URL;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,13 +26,7 @@ public class ServerSgxProperties {
 
     @PostConstruct
     private void init() {
-        //将properties中的classpath替换成绝对路径
-        URL url = this.getClass().getClassLoader().getResource("application.yml");
-        log.info("path: {}", url);
-        assert url != null;
-
-        String fullPath = new File(url.getPath()).getParent();
-        cert.updatePath(fullPath);
+        cert.updatePath();
     }
 
     @Data
@@ -40,6 +34,7 @@ public class ServerSgxProperties {
     public static class SgxCertInfo {
 
         private static final String CLASS_RESOURCES = "classpath:";
+        private boolean isResourceFile = false;
 
         /** properties in resource file */
         private Boolean serverTrusted;
@@ -49,19 +44,27 @@ public class ServerSgxProperties {
         private String caFile;
         private String output;
 
-        void updatePath(String fullPath) {
-            log.info("path1: {}", fullPath);
-            this.certificate = replace(fullPath, certificate);
-            this.privateKey = replace(fullPath, privateKey);
-            this.caFile = replace(fullPath, caFile);
-            this.output = replace(fullPath, output);
+        void updatePath() {
+            this.certificate = replace(certificate);
+            this.privateKey = replace(privateKey);
+            this.caFile = replace(caFile);
+            this.output = replace(output);
         }
 
-        String replace(String path, String value) {
+        String replace(String value) {
             if (value.contains(CLASS_RESOURCES)) {
-                return value.replace(CLASS_RESOURCES, path);
+                this.isResourceFile = true;
+                return value.replace(CLASS_RESOURCES, "");
             }
             return value;
+        }
+
+        public InputStream getInputStream(String fileName) throws Exception {
+            InputStream is = (isResourceFile)
+                ? this.getClass().getResourceAsStream(fileName)
+                : new FileInputStream(fileName);
+            log.info("InputStream size: {} {}", is.available(), fileName);
+            return is;
         }
     }
 }

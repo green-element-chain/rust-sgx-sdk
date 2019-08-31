@@ -6,8 +6,10 @@ import com.energy.sgx.socket.dto.ServerCertInfo;
 import com.energy.sgx.socket.dto.SgxQuoteReport;
 import com.energy.utils.JsonUtil;
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.Signature;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -26,7 +28,7 @@ import org.bouncycastle.openssl.PEMParser;
 @Slf4j
 public class VerifyMarshalCert {
 
-    public static ServerCertInfo unMarshalByte(List<Byte> certList) {
+    public ServerCertInfo unMarshalByte(List<Byte> certList) {
         // Search for Public Key prime256v1 OID
         String[] prime256v1_oid_string = new String[]{"0x06",
             "0x08", "0x2a", "0x86", "0x48", "0xce", "0x3d", "0x03", "0x01", "0x07"};
@@ -68,7 +70,7 @@ public class VerifyMarshalCert {
         return new ServerCertInfo(payload, pub_k);
     }
 
-    public static byte[] verifyCert(String caFile, List<Byte> payload) throws Exception {
+    public byte[] verifyCert(InputStream is, List<Byte> payload) throws Exception {
         Base64.Decoder decoder = Base64.getDecoder();
 
         int startIndex = payload.indexOf(CommonUtil.hexToByte("7c"));
@@ -77,7 +79,7 @@ public class VerifyMarshalCert {
 
         PEMParser pemParser = null;
         try {
-            pemParser = new PEMParser(new FileReader(caFile));
+            pemParser = new PEMParser(new BufferedReader(new InputStreamReader(is)));
             X509CertificateHolder x509CertificateHolder = (X509CertificateHolder) pemParser.readObject();
             X509Certificate provider = new JcaX509CertificateConverter().getCertificate(x509CertificateHolder);
 
@@ -110,7 +112,7 @@ public class VerifyMarshalCert {
         return attnReportRaw;
     }
 
-    public static void verifyAttnReport(byte[] attnReportRaw, byte[] pubK) throws Exception {
+    public void verifyAttnReport(byte[] attnReportRaw, byte[] pubK) throws Exception {
         //extract data from attReportJson
         StringBuilder attReportJson = new StringBuilder();
         for (int i = 0; i < attnReportRaw.length; i++) {
@@ -186,6 +188,5 @@ public class VerifyMarshalCert {
         } else {
             throw new Exception("Failed to fetch isvEnclaveQuoteBody from attestation report");
         }
-
     }
 }

@@ -12,9 +12,6 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
-  redis:
-    host: 127.0.0.1
-    database: 15
 server:
   port: 8085
   sgx:

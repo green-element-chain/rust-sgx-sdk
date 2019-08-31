@@ -5,7 +5,7 @@ import com.energy.sgx.socket.dto.ServerSgxProperties;
 import com.energy.sgx.socket.utils.CommonUtil;
 import com.energy.sgx.socket.utils.PemReader;
 import com.energy.sgx.socket.utils.VerifyMarshalCert;
-import java.io.File;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -31,6 +31,9 @@ import org.springframework.util.StringUtils;
 @Getter
 public class SSLContextBase {
 
+    private PemReader pemReader = new PemReader();
+    private VerifyMarshalCert marshalCert = new VerifyMarshalCert();
+
     @Autowired
     private ServerSgxProperties properties;
 
@@ -52,12 +55,14 @@ public class SSLContextBase {
                         }
 
                         // get the public key and payload from raw data
-                        ServerCertInfo certData = VerifyMarshalCert.unMarshalByte(byteArray);
+                        ServerCertInfo certData = marshalCert.unMarshalByte(byteArray);
 
                         // load Intel CA, then verify cert and signature
-                        byte[] attnReportRaw = VerifyMarshalCert.verifyCert(properties.getCert().getCaFile(), certData.payload);
+                        ServerSgxProperties.SgxCertInfo sgxCertInfo = properties.getCert();
+                        InputStream is = sgxCertInfo.getInputStream(sgxCertInfo.getCaFile());
+                        byte[] attnReportRaw = marshalCert.verifyCert(is, certData.payload);
                         if (!ObjectUtils.isEmpty(attnReportRaw)) {
-                            VerifyMarshalCert.verifyAttnReport(attnReportRaw, certData.pubKey);
+                            marshalCert.verifyAttnReport(attnReportRaw, certData.pubKey);
 
                             String outputPath = properties.getCert().getOutput();
                             CommonUtil.writeInFileByfb(CommonUtil.bytesToHex(certData.pubKey), outputPath + "/pubkey.txt");
@@ -90,9 +95,11 @@ public class SSLContextBase {
 
     private KeyManagerFactory getKeyManagerFactory() throws Exception {
         ServerSgxProperties.SgxCertInfo sgxCertInfo = properties.getCert();
-        File cert = new File(sgxCertInfo.getCertificate());
-        List<X509Certificate> certificates = PemReader.readCertificate(cert);
-        PrivateKey key = PemReader.getPemPrivateKey(sgxCertInfo.getPrivateKey(), sgxCertInfo.getAlgorithm());
+        InputStream certInfoInputStream = sgxCertInfo.getInputStream(sgxCertInfo.getCertificate());
+        List<X509Certificate> certificates = pemReader.readCertificate(certInfoInputStream);
+
+        InputStream privateKeyInputStream = sgxCertInfo.getInputStream(sgxCertInfo.getPrivateKey());
+        PrivateKey key = pemReader.getPemPrivateKey(privateKeyInputStream, sgxCertInfo.getAlgorithm());
 
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);
