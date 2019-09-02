@@ -118,12 +118,14 @@ pub extern "C" fn ocall_empty(
     strlen: *mut c_int,
     p_sigrl: *const u8,
     sigrl_len: u32,
+    p_quote: *mut u8,
+    _maxlen: u32,
+    p_quote_len: *mut u32,
 ) -> sgx_status_t {
     println!("ocall_empty");
 
     let str_slice = unsafe { slice::from_raw_parts(p_sigrl, sigrl_len as usize) };
     let jsonstr = str::from_utf8(str_slice).unwrap();
-    println!("the str from enclave is: {}",jsonstr);
 
     unsafe { *strlen = 12 };
     sgx_status_t::SGX_SUCCESS

@@ -25,6 +25,9 @@ extern "C" {
         strlen: *mut i32,
         p_sigrl: *const u8,
         sigrl_len: u32,
+        p_quote: *mut u8,
+        maxlen: u32,
+        p_quote_len: *mut u32,
     ) -> sgx_status_t;
 }
 
@@ -314,6 +317,12 @@ impl Connection {
                 let mut rt: sgx_status_t = sgx_status_t::SGX_ERROR_UNEXPECTED;
 
                 let mut strlen: i32 = 0;
+                const RET_QUOTE_BUF_LEN: u32 = 2048;
+                let mut return_quote_buf: [u8; RET_QUOTE_BUF_LEN as usize] = [0; RET_QUOTE_BUF_LEN as usize];
+                let mut quote_len: u32 = 0;
+                let p_quote = return_quote_buf.as_mut_ptr();
+                let maxlen = RET_QUOTE_BUF_LEN;
+                let p_quote_len = &mut quote_len as *mut u32;
 
                 let result = unsafe {
                     ocall_empty(
@@ -321,6 +330,9 @@ impl Connection {
                         &mut strlen as *mut i32,
                         inputstr.as_ptr(),
                         inputstr.len() as u32,
+                        p_quote,
+                        maxlen,
+                        p_quote_len,
                     )
                 };
 
