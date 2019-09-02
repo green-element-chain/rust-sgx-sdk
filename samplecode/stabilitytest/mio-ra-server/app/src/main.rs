@@ -46,6 +46,7 @@ extern crate serde_json;
 
 mod beans;
 mod sqlitedb;
+mod buz;
 
 use std::env;
 use std::fs;
@@ -56,6 +57,7 @@ use std::path;
 use std::slice;
 use std::str;
 use std::str::FromStr;
+use buz::buzlogic::buzfn;
 
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";
@@ -126,20 +128,18 @@ pub extern "C" fn ocall_empty(
     let str_slice = unsafe { slice::from_raw_parts(inside_str, inside_len as usize) };
     let jsonstr = str::from_utf8(str_slice).unwrap();
 
+    let resultstr = buzfn(jsonstr).as_bytes();
+
     let result_slice = unsafe { slice::from_raw_parts_mut(p_result_str, inside_len as usize) };
-    result_slice[0] = 12;
-    result_slice[1] = 234;
 
     let mut j = 0;
-
-    for x in str_slice {
+    for x in resultstr {
         result_slice[j] = *x ;
         j = j + 1;
     }
 
     unsafe {
         *p_result_len = inside_len;
-        //        *p_result_str = *inside_str;
     };
     sgx_status_t::SGX_SUCCESS
 }

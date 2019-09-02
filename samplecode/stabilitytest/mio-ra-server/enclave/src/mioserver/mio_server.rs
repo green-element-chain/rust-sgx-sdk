@@ -344,7 +344,7 @@ impl Connection {
 
                 let str_slice = unsafe { slice::from_raw_parts(p_quote, *p_result_len as usize) };
                 let result_json_str = std::str::from_utf8(str_slice).unwrap();
-                println!("different array,return str is {}", result_json_str);
+                println!("different array,return str is: {}", result_json_str);
 
                 match inputstr.find("energy_teacher") {
                     Some(T) => {
