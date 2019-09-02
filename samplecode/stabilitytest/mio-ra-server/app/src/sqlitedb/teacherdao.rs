@@ -5,8 +5,8 @@ use sqlite3::access;
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
-use sqlitedb::sqlops::lose;
 use sqlitedb::sqlite::start_db;
+use sqlitedb::sqlops::lose;
 
 pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     if !&exist_flag {
@@ -78,8 +78,8 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
                     Ok(x) => {
                         *conn = x;
                         println!("reset conn");
-                        continue
-                    },
+                        continue;
+                    }
                     _ => panic!("create database failed"),
                 }
                 println!("we get a error in prepare,retry again!");
@@ -110,12 +110,10 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
             Err(e) => {
                 println!("we get a error in update,retry again");
                 println!("insert teacher failed");
-                break
-            },
+                break;
+            }
         }
     }
-
-
 }
 
 pub fn delete_teacher(conn: &mut DatabaseConnection) {
@@ -133,7 +131,7 @@ pub fn delete_teacher(conn: &mut DatabaseConnection) {
 
 pub fn insert_bench_teacher(conn: &mut DatabaseConnection) {
     for (_i, j) in (0..5).enumerate() {
-        println!("the {} data",j);
+        println!("the {} data", j);
         let teacher = Teacher {
             id: j,
             street: "streett".to_string(),

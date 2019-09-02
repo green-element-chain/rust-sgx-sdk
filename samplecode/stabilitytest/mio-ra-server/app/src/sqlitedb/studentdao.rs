@@ -4,8 +4,8 @@ use sqlite3::{access, SqliteError};
 use sqlite3::{
     Access, DatabaseConnection, QueryFold, ResultRowAccess, SqliteResult, StatementUpdate,
 };
-use sqlitedb::sqlops::lose;
 use sqlitedb::sqlite;
+use sqlitedb::sqlops::lose;
 
 pub fn base_student_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
     println!("----------------student base operation ------------------");
@@ -64,7 +64,7 @@ pub fn create_student_table(conn: &mut DatabaseConnection) {
 
 pub fn insert_bench_student(conn: &mut DatabaseConnection) {
     for (_i, j) in (0..5).enumerate() {
-        println!("the {} data",j);
+        println!("the {} data", j);
         let student = Student {
             id: j,
             street: "streett".to_string(),
@@ -106,7 +106,6 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
     let mut tx;
     let mut txs;
     loop {
-
         tx = conn.prepare(
             "INSERT INTO student (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
@@ -120,8 +119,8 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
                     Ok(x) => {
                         *conn = x;
                         println!("reset conn");
-                        continue
-                    },
+                        continue;
+                    }
                     _ => panic!("create database failed"),
                 }
                 println!("we get a error in prepare,retry again!");
@@ -151,15 +150,12 @@ pub fn insert_student(conn: &mut DatabaseConnection, student: &mut Student) {
                 break;
             }
             Err(e) => {
-                println!("{}",e);
+                println!("{}", e);
                 println!("insert student failed");
-                break
+                break;
             }
         }
-
     }
-
-
 }
 
 pub fn select_student_sum(conn: &mut DatabaseConnection) {

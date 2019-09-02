@@ -20,7 +20,12 @@ const LISTENER: mio::Token = mio::Token(0);
 
 extern "C" {
     // OCALLS
-    pub fn ocall_empty() -> sgx_status_t;
+    pub fn ocall_empty(
+        ret_val: *mut sgx_status_t,
+        strlen: *mut i32,
+        p_sigrl: *const u8,
+        sigrl_len: u32,
+    ) -> sgx_status_t;
 }
 
 // Which mode the server operates in.
@@ -306,7 +311,20 @@ impl Connection {
                 //student, datatype = 1
                 let mut datatype = 2;
 
-                let result = unsafe { ocall_empty() };
+                let mut rt: sgx_status_t = sgx_status_t::SGX_ERROR_UNEXPECTED;
+
+                let mut strlen: i32 = 0;
+
+                let result = unsafe {
+                    ocall_empty(
+                        &mut rt as *mut sgx_status_t,
+                        &mut strlen as *mut i32,
+                        inputstr.as_ptr(),
+                        inputstr.len() as u32,
+                    )
+                };
+
+                println!("ocall_empty get value: {}", strlen);
 
                 if result != sgx_status_t::SGX_SUCCESS {
                     panic!("not sgx success");

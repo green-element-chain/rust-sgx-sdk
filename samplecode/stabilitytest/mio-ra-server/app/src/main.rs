@@ -29,9 +29,9 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 
+extern crate dirs;
 extern crate sgx_types;
 extern crate sgx_urts;
-extern crate dirs;
 extern crate sqlite3;
 
 use sgx_types::*;
@@ -44,36 +44,46 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
-mod sqlitedb;
 mod beans;
+mod sqlitedb;
 
-use std::os::unix::io::{IntoRawFd, AsRawFd};
-use std::fs;
 use std::env;
-use std::path;
-use std::net::{TcpListener, TcpStream, SocketAddr};
-use std::str;
+use std::fs;
 use std::io::{Read, Write};
+use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::os::unix::io::{AsRawFd, IntoRawFd};
+use std::path;
+use std::str;
+use std::slice;
 use std::str::FromStr;
 
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";
 
-extern {
-    fn run_server(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
-                  max_conn: uint8_t, sign_type: sgx_quote_sign_type_t, existed: uint8_t) -> sgx_status_t;
+extern "C" {
+    fn run_server(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        max_conn: uint8_t,
+        sign_type: sgx_quote_sign_type_t,
+        existed: uint8_t,
+    ) -> sgx_status_t;
 
-    fn say_something(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
-                     some_string: *const u8, len: usize) -> sgx_status_t;
+    fn say_something(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        some_string: *const u8,
+        len: usize,
+    ) -> sgx_status_t;
 }
 
-
 #[no_mangle]
-pub extern "C"
-fn ocall_sgx_init_quote(ret_ti: *mut sgx_target_info_t,
-                        ret_gid : *mut sgx_epid_group_id_t) -> sgx_status_t {
+pub extern "C" fn ocall_sgx_init_quote(
+    ret_ti: *mut sgx_target_info_t,
+    ret_gid: *mut sgx_epid_group_id_t,
+) -> sgx_status_t {
     println!("Entering ocall_sgx_init_quote");
-    unsafe {sgx_init_quote(ret_ti, ret_gid)}
+    unsafe { sgx_init_quote(ret_ti, ret_gid) }
 }
 
 pub fn lookup_ipv4(host: &str, port: u16) -> SocketAddr {
@@ -89,46 +99,54 @@ pub fn lookup_ipv4(host: &str, port: u16) -> SocketAddr {
     unreachable!("Cannot lookup address");
 }
 
-
 #[no_mangle]
-pub extern "C"
-fn ocall_get_ias_socket(ret_fd : *mut c_int) -> sgx_status_t {
+pub extern "C" fn ocall_get_ias_socket(ret_fd: *mut c_int) -> sgx_status_t {
     let port = 443;
     let hostname = "test-as.sgx.trustedservices.intel.com";
     let addr = lookup_ipv4(hostname, port);
     let sock = TcpStream::connect(&addr).expect("[-] Connect tls server failed!");
 
-    unsafe {*ret_fd = sock.into_raw_fd();}
+    unsafe {
+        *ret_fd = sock.into_raw_fd();
+    }
 
     sgx_status_t::SGX_SUCCESS
 }
 
 #[no_mangle]
-pub extern "C"
-fn ocall_empty() -> sgx_status_t {
+pub extern "C" fn ocall_empty(
+    strlen: *mut c_int,
+    p_sigrl: *const u8,
+    sigrl_len: u32,
+) -> sgx_status_t {
     println!("ocall_empty");
+
+    let str_slice = unsafe { slice::from_raw_parts(p_sigrl, sigrl_len as usize) };
+    let jsonstr = str::from_utf8(str_slice).unwrap();
+    println!("the str from enclave is: {}",jsonstr);
+
+    unsafe { *strlen = 12 };
     sgx_status_t::SGX_SUCCESS
 }
 
 #[no_mangle]
-pub extern "C"
-fn ocall_get_quote (p_sigrl            : *const u8,
-                    sigrl_len          : u32,
-                    p_report           : *const sgx_report_t,
-                    quote_type         : sgx_quote_sign_type_t,
-                    p_spid             : *const sgx_spid_t,
-                    p_nonce            : *const sgx_quote_nonce_t,
-                    p_qe_report        : *mut sgx_report_t,
-                    p_quote            : *mut u8,
-                    _maxlen             : u32,
-                    p_quote_len        : *mut u32) -> sgx_status_t {
+pub extern "C" fn ocall_get_quote(
+    p_sigrl: *const u8,
+    sigrl_len: u32,
+    p_report: *const sgx_report_t,
+    quote_type: sgx_quote_sign_type_t,
+    p_spid: *const sgx_spid_t,
+    p_nonce: *const sgx_quote_nonce_t,
+    p_qe_report: *mut sgx_report_t,
+    p_quote: *mut u8,
+    _maxlen: u32,
+    p_quote_len: *mut u32,
+) -> sgx_status_t {
     println!("Entering ocall_get_quote");
 
-    let mut real_quote_len : u32 = 0;
+    let mut real_quote_len: u32 = 0;
 
-    let ret = unsafe {
-        sgx_calc_quote_size(p_sigrl, sigrl_len, &mut real_quote_len as *mut u32)
-    };
+    let ret = unsafe { sgx_calc_quote_size(p_sigrl, sigrl_len, &mut real_quote_len as *mut u32) };
 
     if ret != sgx_status_t::SGX_SUCCESS {
         println!("sgx_calc_quote_size returned {}", ret);
@@ -136,19 +154,23 @@ fn ocall_get_quote (p_sigrl            : *const u8,
     }
 
     println!("quote size = {}", real_quote_len);
-    unsafe { *p_quote_len = real_quote_len; }
+    unsafe {
+        *p_quote_len = real_quote_len;
+    }
 
     let ret = unsafe {
-        sgx_get_quote(p_report,
-                      quote_type,
-                      p_spid,
-                      p_nonce,
-                      p_sigrl,
-                      sigrl_len,
-                      p_qe_report,
-                      p_quote as *mut sgx_quote_t,
-                      real_quote_len)
-        };
+        sgx_get_quote(
+            p_report,
+            quote_type,
+            p_spid,
+            p_nonce,
+            p_sigrl,
+            sigrl_len,
+            p_qe_report,
+            p_quote as *mut sgx_quote_t,
+            real_quote_len,
+        )
+    };
 
     if ret != sgx_status_t::SGX_SUCCESS {
         println!("sgx_calc_quote_size returned {}", ret);
@@ -160,17 +182,15 @@ fn ocall_get_quote (p_sigrl            : *const u8,
 }
 
 #[no_mangle]
-pub extern "C"
-fn ocall_get_update_info (platform_blob: * const sgx_platform_info_t,
-                          enclave_trusted: i32,
-                          update_info: * mut sgx_update_info_bit_t) -> sgx_status_t {
-    unsafe{
-        sgx_report_attestation_status(platform_blob, enclave_trusted, update_info)
-    }
+pub extern "C" fn ocall_get_update_info(
+    platform_blob: *const sgx_platform_info_t,
+    enclave_trusted: i32,
+    update_info: *mut sgx_update_info_bit_t,
+) -> sgx_status_t {
+    unsafe { sgx_report_attestation_status(platform_blob, enclave_trusted, update_info) }
 }
 
 fn init_enclave() -> SgxResult<SgxEnclave> {
-
     let mut launch_token: sgx_launch_token_t = [0; 1024];
     let mut launch_token_updated: i32 = 0;
     // Step 1: try to retrieve the launch token saved by last transaction
@@ -183,7 +203,7 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
             println!("[+] Home dir is {}", path.display());
             home_dir = path;
             true
-        },
+        }
         None => {
             println!("[-] Cannot get home dir");
             false
@@ -194,14 +214,17 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
     if use_token == true {
         match fs::File::open(&token_file) {
             Err(_) => {
-                println!("[-] Open token file {} error! Will create one.", token_file.as_path().to_str().unwrap());
-            },
+                println!(
+                    "[-] Open token file {} error! Will create one.",
+                    token_file.as_path().to_str().unwrap()
+                );
+            }
             Ok(mut f) => {
                 println!("[+] Open token file success! ");
                 match f.read(&mut launch_token) {
                     Ok(1024) => {
                         println!("[+] Token file valid!");
-                    },
+                    }
                     _ => println!("[+] Token file invalid, will create new token file"),
                 }
             }
@@ -211,26 +234,29 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
     // Step 2: call sgx_create_enclave to initialize an enclave instance
     // Debug Support: set 2nd parameter to 1
     let debug = 1;
-    let mut misc_attr = sgx_misc_attribute_t {secs_attr: sgx_attributes_t { flags:0, xfrm:0}, misc_select:0};
-    let enclave = try!(SgxEnclave::create(ENCLAVE_FILE,
-                                          debug,
-                                          &mut launch_token,
-                                          &mut launch_token_updated,
-                                          &mut misc_attr));
+    let mut misc_attr = sgx_misc_attribute_t {
+        secs_attr: sgx_attributes_t { flags: 0, xfrm: 0 },
+        misc_select: 0,
+    };
+    let enclave = try!(SgxEnclave::create(
+        ENCLAVE_FILE,
+        debug,
+        &mut launch_token,
+        &mut launch_token_updated,
+        &mut misc_attr
+    ));
 
     // Step 3: save the launch token if it is updated
     if use_token == true && launch_token_updated != 0 {
         // reopen the file with write capablity
         match fs::File::create(&token_file) {
-            Ok(mut f) => {
-                match f.write_all(&launch_token) {
-                    Ok(()) => println!("[+] Saved updated launch token!"),
-                    Err(_) => println!("[-] Failed to save updated launch token!"),
-                }
+            Ok(mut f) => match f.write_all(&launch_token) {
+                Ok(()) => println!("[+] Saved updated launch token!"),
+                Err(_) => println!("[-] Failed to save updated launch token!"),
             },
             Err(_) => {
                 println!("[-] Failed to save updated enclave token, but doesn't matter");
-            },
+            }
         }
     }
 
@@ -240,12 +266,12 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
 fn main() {
     let dbfile = "test.db";
     let mut existed = 0;
-    match fs::File::open(dbfile){
+    match fs::File::open(dbfile) {
         Err(_) => {
             existed = 0;
             println!("dbfile not existed");
-        },
-        _ =>{
+        }
+        _ => {
             existed = 1;
             println!("dbfile existed");
         }
@@ -259,8 +285,6 @@ fn main() {
         _ => panic!("create database failed"),
     }
 
-
-
     let mut args: Vec<_> = env::args().collect();
     let mut sign_type = sgx_quote_sign_type_t::SGX_LINKABLE_SIGNATURE;
     let mut max_conn = 30;
@@ -269,8 +293,9 @@ fn main() {
         match args.remove(0).as_ref() {
             "--unlink" => sign_type = sgx_quote_sign_type_t::SGX_UNLINKABLE_SIGNATURE,
             "--maxconn" => {
-                max_conn = uint8_t::from_str(args.remove(0).as_ref()).expect("error parsing argument");
-                println!("max connections is: {}",max_conn);
+                max_conn =
+                    uint8_t::from_str(args.remove(0).as_ref()).expect("error parsing argument");
+                println!("max connections is: {}", max_conn);
             }
             _ => {
                 println!("Only --unlink is accepted");
@@ -282,24 +307,22 @@ fn main() {
         Ok(r) => {
             println!("[+] Init Enclave Successful {}!", r.geteid());
             r
-        },
+        }
         Err(x) => {
             println!("[-] Init Enclave Failed {}!", x.as_str());
             return;
-        },
+        }
     };
 
     println!("Running as server...");
     let listener = TcpListener::bind("0.0.0.0:3443").unwrap();
 
     let mut retval = sgx_status_t::SGX_SUCCESS;
-    let result = unsafe {
-        run_server(enclave.geteid(), &mut retval, max_conn,  sign_type, existed)
-    };
+    let result = unsafe { run_server(enclave.geteid(), &mut retval, max_conn, sign_type, existed) };
     match result {
         sgx_status_t::SGX_SUCCESS => {
             println!("ECALL success!");
-        },
+        }
         _ => {
             println!("[-] ECALL Enclave Failed {}!", result.as_str());
             return;
