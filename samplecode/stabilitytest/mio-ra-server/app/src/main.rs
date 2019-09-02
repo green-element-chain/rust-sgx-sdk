@@ -53,8 +53,8 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::os::unix::io::{AsRawFd, IntoRawFd};
 use std::path;
-use std::str;
 use std::slice;
+use std::str;
 use std::str::FromStr;
 
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
@@ -115,19 +115,32 @@ pub extern "C" fn ocall_get_ias_socket(ret_fd: *mut c_int) -> sgx_status_t {
 
 #[no_mangle]
 pub extern "C" fn ocall_empty(
-    strlen: *mut c_int,
-    p_sigrl: *const u8,
-    sigrl_len: u32,
-    p_quote: *mut u8,
-    _maxlen: u32,
-    p_quote_len: *mut u32,
+    inside_str: *const u8,
+    inside_len: u32,
+    p_result_str: *mut u8,
+    maxlen: u32,
+    p_result_len: *mut u32,
 ) -> sgx_status_t {
     println!("ocall_empty");
 
-    let str_slice = unsafe { slice::from_raw_parts(p_sigrl, sigrl_len as usize) };
+    let str_slice = unsafe { slice::from_raw_parts(inside_str, inside_len as usize) };
     let jsonstr = str::from_utf8(str_slice).unwrap();
 
-    unsafe { *strlen = 12 };
+    let result_slice = unsafe { slice::from_raw_parts_mut(p_result_str, inside_len as usize) };
+    result_slice[0] = 12;
+    result_slice[1] = 234;
+
+    let mut j = 0;
+
+    for x in str_slice {
+        result_slice[j] = *x ;
+        j = j + 1;
+    }
+
+    unsafe {
+        *p_result_len = inside_len;
+        //        *p_result_str = *inside_str;
+    };
     sgx_status_t::SGX_SUCCESS
 }
 

@@ -11,6 +11,7 @@ use std::io::{self, BufReader, Read, Write};
 use std::net;
 use std::net::Shutdown;
 use std::prelude::v1::*;
+use std::slice;
 use std::sync::Arc;
 use std::untrusted::fs;
 use std::vec::Vec;
@@ -22,12 +23,11 @@ extern "C" {
     // OCALLS
     pub fn ocall_empty(
         ret_val: *mut sgx_status_t,
-        strlen: *mut i32,
-        p_sigrl: *const u8,
-        sigrl_len: u32,
-        p_quote: *mut u8,
+        inside_str: *const u8,
+        inside_len: u32,
+        p_result_str: *mut u8,
         maxlen: u32,
-        p_quote_len: *mut u32,
+        p_result_len: *mut u32,
     ) -> sgx_status_t;
 }
 
@@ -316,31 +316,35 @@ impl Connection {
 
                 let mut rt: sgx_status_t = sgx_status_t::SGX_ERROR_UNEXPECTED;
 
-                let mut strlen: i32 = 0;
+                let mut result_len: u32 = 0;
+                let p_result_len = &mut result_len as *mut u32;
+
                 const RET_QUOTE_BUF_LEN: u32 = 2048;
-                let mut return_quote_buf: [u8; RET_QUOTE_BUF_LEN as usize] = [0; RET_QUOTE_BUF_LEN as usize];
-                let mut quote_len: u32 = 0;
+                let mut return_quote_buf: [u8; RET_QUOTE_BUF_LEN as usize] =
+                    [0; RET_QUOTE_BUF_LEN as usize];
                 let p_quote = return_quote_buf.as_mut_ptr();
                 let maxlen = RET_QUOTE_BUF_LEN;
-                let p_quote_len = &mut quote_len as *mut u32;
 
                 let result = unsafe {
                     ocall_empty(
                         &mut rt as *mut sgx_status_t,
-                        &mut strlen as *mut i32,
                         inputstr.as_ptr(),
                         inputstr.len() as u32,
                         p_quote,
                         maxlen,
-                        p_quote_len,
+                        p_result_len,
                     )
                 };
 
-                println!("ocall_empty get value: {}", strlen);
+                println!("quote_len get value:{}", result_len);
 
                 if result != sgx_status_t::SGX_SUCCESS {
                     panic!("not sgx success");
                 }
+
+                let str_slice = unsafe { slice::from_raw_parts(p_quote, *p_result_len as usize) };
+                let result_json_str = std::str::from_utf8(str_slice).unwrap();
+                println!("different array,return str is {}", result_json_str);
 
                 match inputstr.find("energy_teacher") {
                     Some(T) => {

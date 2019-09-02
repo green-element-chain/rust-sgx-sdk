@@ -67,12 +67,11 @@ enclave {
                        [out] sgx_update_info_bit_t * update_info);
 
 
-        sgx_status_t ocall_empty(      [out] int *len,
-                                       [in, size = sigrl_len] uint8_t * p_sigrl,
-                                       uint32_t sigrl_len,
-                                       [out, size = maxlen] sgx_quote_t *p_quote,
+        sgx_status_t ocall_empty(      [in, size = inside_len] uint8_t * inside_str,
+                                       uint32_t inside_len,
+                                       [out, size = maxlen] uint8_t *p_result_str,
                                        uint32_t maxlen,
-                                       [out] uint32_t* p_quote_len);
+                                       [out] uint32_t * p_result_len);
 
         void ocall_println_string([in, string] const char *str);
         void ocall_print_string([in, string] const char *str);
