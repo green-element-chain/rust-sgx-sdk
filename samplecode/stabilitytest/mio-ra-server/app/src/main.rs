@@ -298,7 +298,10 @@ fn main() {
 
     let mut conn;
     match sqlitedb::sqlite::start_db(0) {
-        Ok(x) => conn = x,
+        Ok(x) => {
+            conn = x;
+            sqlitedb::teacherdao::create_teacher_table(&mut conn);
+        },
         _ => panic!("create database failed"),
     }
 
@@ -335,7 +338,7 @@ fn main() {
     let listener = TcpListener::bind("0.0.0.0:3443").unwrap();
 
     let mut retval = sgx_status_t::SGX_SUCCESS;
-    let result = unsafe { run_server(enclave.geteid(), &mut retval, max_conn, sign_type, existed) };
+    let result = unsafe { run_server(enclave.geteid(), &mut retval, max_conn, sign_type, 0) };
     match result {
         sgx_status_t::SGX_SUCCESS => {
             println!("ECALL success!");

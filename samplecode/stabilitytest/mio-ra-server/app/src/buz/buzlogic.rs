@@ -29,7 +29,7 @@ pub fn buzfn(inputstr: &str) -> &str {
 
     //startdb
     let mut conn;
-    match sqlitedb::sqlite::start_db(1) {
+    match sqlitedb::sqlite::start_db(0) {
         Ok(x) => conn = x,
         _ => panic!("create database failed"),
     }
@@ -43,7 +43,6 @@ pub fn buzfn(inputstr: &str) -> &str {
         let mut teacher = result.clone();
 
         if result.sendstatus == "end" {
-
             sqlitedb::teacherdao::insert_teacher(&mut conn, &mut teacher);
             let resultlist = sqlitedb::teacherdao::select_teacher_list(&mut conn).unwrap();
             println!("{:?}",resultlist);

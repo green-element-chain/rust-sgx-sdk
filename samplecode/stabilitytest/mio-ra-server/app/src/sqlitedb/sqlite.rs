@@ -17,7 +17,7 @@ pub fn start_db(existed: uint8_t) -> SqliteResult<DatabaseConnection> {
         Ok(x) => {
             conn = x;
             println!("sqlitedb opening test:");
-            opening::base_ops(&mut conn, existed);
+//            opening::base_ops(&mut conn, existed);
             Ok(conn)
         }
         _ => {

@@ -63,34 +63,14 @@ pub fn create_teacher_table(conn: &mut DatabaseConnection) {
 }
 
 pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
-    let mut tx;
-    let mut txs;
-    loop {
-        tx = conn.prepare(
-            "INSERT INTO student (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
+    let mut tx = conn
+        .prepare(
+            "INSERT INTO teacher (id, street,city,sendstatus,datatype,ops,age,clientid,indexid)
                            VALUES ($1, $2, $3,$4, $5, $6,$7, $8,$9)",
-        );
-        match tx {
-            Ok(T) => {
-                txs = T;
-            }
-            Err(e) => {
-                match sqlite::start_db(1) {
-                    Ok(x) => {
-                        *conn = x;
-                        println!("reset conn");
-                        continue;
-                    }
-                    _ => panic!("create database failed"),
-                }
-                println!("we get a error in prepare,retry again!");
-            }
-        }
-
-        let mut change;
-        let mut changes;
-
-        changes = txs.update(&[
+        )
+        .unwrap();
+    let changes = tx
+        .update(&[
             &teacher.id,
             &teacher.street,
             &teacher.city,
@@ -100,21 +80,10 @@ pub fn insert_teacher(conn: &mut DatabaseConnection, teacher: &mut Teacher) {
             &teacher.age,
             &teacher.clientid,
             &teacher.indexid,
-        ]);
-        match changes {
-            Ok(T) => {
-                change = T;
-                assert_eq!(change, 1);
-                println!("insert teacher success");
-                break;
-            }
-            Err(e) => {
-                println!("we get a error in update,retry again");
-                println!("insert teacher failed");
-                break;
-            }
-        }
-    }
+        ])
+        .unwrap();
+    assert_eq!(changes, 1);
+    println!("insert student success");
 }
 
 pub fn delete_teacher(conn: &mut DatabaseConnection) {

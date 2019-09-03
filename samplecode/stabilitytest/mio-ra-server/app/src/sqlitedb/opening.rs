@@ -23,14 +23,6 @@ pub fn base_ops(conn: &mut DatabaseConnection, existed: uint8_t) {
     studentdao::base_student_ops(conn, &exist_flag);
 }
 
-pub fn create_table(conn: &mut DatabaseConnection, existed: uint8_t) {
-    let mut exist_flag = false;
-    let mut number = 1;
-    if (existed == 1) {
-        exist_flag = true
-    }
-}
-
 pub fn select_sum(conn: &mut DatabaseConnection, existed: uint8_t) {
     let mut exist_flag = false;
     let mut number = 1;

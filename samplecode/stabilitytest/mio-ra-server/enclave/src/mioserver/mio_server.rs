@@ -430,15 +430,15 @@ impl Connection {
                         self.tls_session.write("success\n".as_bytes()).unwrap();
                     }
                 } else {
-                    sqlitedb::opening::select_sum(conn, 1);
-                    println!("----------------------------------");
-                    match sqlitedb::teacherdao::select_teacher_list(conn) {
-                        Ok(y) => {
-                            println!("SELECT * FROM teacher");
-                            println!("Ok: {:?}", y);
-                        }
-                        Err(oops) => sqlitedb::sqlops::lose(format!("oops!: {:?}", oops).as_ref()),
-                    }
+//                    sqlitedb::opening::select_sum(conn, 1);
+//                    println!("----------------------------------");
+//                    match sqlitedb::teacherdao::select_teacher_list(conn) {
+//                        Ok(y) => {
+//                            println!("SELECT * FROM teacher");
+//                            println!("Ok: {:?}", y);
+//                        }
+//                        Err(oops) => sqlitedb::sqlops::lose(format!("oops!: {:?}", oops).as_ref()),
+//                    }
                     self.tls_session.write("success\n".as_bytes()).unwrap();
                 }
                 //

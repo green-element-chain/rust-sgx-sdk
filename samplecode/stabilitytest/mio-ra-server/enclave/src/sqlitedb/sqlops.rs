@@ -34,7 +34,7 @@ pub fn get_database_conn() -> SqliteResult<DatabaseConnection> {
             (Some("-r"), Some(dbfile)) => ok(Flags::OPEN_READONLY, dbfile),
             (Some(dbfile), None) => ok(Default::default(), dbfile),
             (_, _) => {
-                let dbfile = "test.db";
+                let dbfile = "testenclave.db";
                 ok(Default::default(), dbfile)
             }
         }
