@@ -1,6 +1,6 @@
 //! 资产的订单数据管理
 use chrono::NaiveDateTime;
-use sqlite3::{PreparedStatement, QueryFold, SqliteError, SqliteResult, ResultRowAccess};
+use sqlite3::{PreparedStatement, QueryFold, ResultRowAccess, SqliteError, SqliteResult};
 
 use service::response::{LastUpdatedTime, SgxServerResponse};
 use std::string::String;
@@ -41,7 +41,11 @@ impl OrderMgr {
         );";
         self.db_context.exec(sql);
     }
+}
 
+// 所有的Restful接口实现
+#[allow(unused_variables)]
+impl OrderMgr {
     pub fn restful_get_updated_time(&self) -> String {
         let table_name = "asset_order";
         let time: Option<String> = self.db_context.get_last_update_time_local(table_name);
@@ -72,7 +76,7 @@ impl OrderMgr {
         SgxServerResponse::success(format!("{} {}", msg, "success."))
     }
 
-    pub fn restful_get_asset_order(&self, param: String) -> String {
+    pub fn restful_get_asset_order(&self, _param: String) -> String {
         let msg = "get_asset_order data from sgx server";
         let sql = "select order_id,asset_type,asset_id,revenue,order_time \
             from asset_order order by order_time desc limit 50";

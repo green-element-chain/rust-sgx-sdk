@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@Api(description = "基础资产管理接口")
+@Api(description = "SGX基础数据管理接口")
 @RestController
 @RequestMapping("sgx")
 public class SgxDataController {
@@ -60,9 +60,24 @@ public class SgxDataController {
     @ApiOperation(value = "从SGX查询项目分账协议", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
     @GetMapping("project/ledger/get")
     public Object queryProjectLedgerFromSgxServer() {
-        log.info("query data from sgx at {}", System.currentTimeMillis());
+        log.info("query project ledger from sgx at {}", System.currentTimeMillis());
         return dataService.queryProjectLedgerFromSgx();
     }
+
+    @ApiOperation(value = "转移项目分账卡域信息到SGX", notes = "将用于分账的分账用到的卡域信息写入到SGX Server服务器，让分账协议在SGX内部自动执行。")
+    @PostMapping("project/receipt/set")
+    public Object transferProjectReceiptToSgxServer() {
+        log.info("transfer project receipt data at {}", System.currentTimeMillis());
+        return dataService.transferProjectReceiptToSgx();
+    }
+
+    @ApiOperation(value = "从SGX查询项目分账卡域信息", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
+    @GetMapping("project/receipt/get")
+    public Object queryProjectReceiptFromSgxServer() {
+        log.info("query project receipt from sgx at {}", System.currentTimeMillis());
+        return dataService.queryProjectReceiptFromSgx();
+    }
+
 
     @ApiOperation(value = "创建项目账单", notes = "触发SGX Server服务器生成项目的账单数据。")
     @ApiImplicitParams({

@@ -1,5 +1,6 @@
 package com.energy.sgx.sgxdata.dto.request;
 
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -25,6 +26,9 @@ public class ProjectLedgerVo {
 
     /** 分账日(1~28) */
     private Integer ledgerDate;
+
+    /** 分账模式 */
+    private BigInteger ledgerMode;
 
     /** 分账协议的内容 */
     private String ledgerContent;

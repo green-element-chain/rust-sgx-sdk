@@ -32,9 +32,8 @@ merchant_query_url = "https://newpayment-test.chinapay.com/CTITS/service/rest/fo
 
 # 银联支付相关参数
 [[unionpay_tran_param]]
-use_test_url = true
 # 前台交易类型，0001为B2C，0002为B2B
-tran_front_type = "0001"
+tran_type_b2b = "0001"
 tran_mer_id = "000091905069034"
 tran_redirect = "http://127.0.0.1:8072/myBills/payment"
 notify_front = "http://127.0.0.1:8085/sgx-server/tran/frontRcvResponse"

@@ -4,6 +4,7 @@ import com.energy.sgx.sgxdata.dto.request.AssetOrderVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectAssetVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectIDVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectLedgerVo;
+import com.energy.sgx.sgxdata.dto.request.ProjectReceiptVo;
 import com.energy.sgx.sgxdata.dto.request.SocketMessage;
 import com.energy.sgx.sgxdata.dto.response.LastUpdatedTime;
 import com.energy.sgx.sgxdata.dto.response.LastUpdatedTime.Utils;
@@ -12,7 +13,7 @@ import com.energy.sgx.sgxdata.service.DataService;
 import com.energy.sgx.sgxdata.service.impl.order.AssetOrderService;
 import com.energy.sgx.sgxdata.service.impl.project.ProjectAssetService;
 import com.energy.sgx.sgxdata.service.impl.project.ProjectLedgerService;
-import com.energy.sgx.socket.service.LocalSocketClient;
+import com.energy.sgx.sgxdata.service.impl.project.ProjectReceiptService;
 import com.energy.utils.JsonUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Bryan
@@ -29,14 +29,14 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Service
-public class DataServiceImpl implements DataService {
+public class DataServiceImpl extends ServiceBase implements DataService {
 
-    @Autowired
-    private LocalSocketClient socketClient;
     @Autowired
     private ProjectAssetService projectAssetService;
     @Autowired
     private ProjectLedgerService projectLedgerService;
+    @Autowired
+    private ProjectReceiptService projectReceiptService;
     @Autowired
     private AssetOrderService assetOrderService;
 
@@ -45,15 +45,6 @@ public class DataServiceImpl implements DataService {
         String updateTimeResp = socketClient.sendData(message);
         log.info("{}", updateTimeResp);
         return Utils.fromJson(updateTimeResp);
-    }
-
-    private Object sendDataToSgx(String url, String dataJsonStr) {
-        SocketMessage message = new SocketMessage(url, dataJsonStr);
-        String response = socketClient.sendData(message);
-        if (!StringUtils.isEmpty(response)) {
-            log.debug("response from sgx: {}", response);
-        }
-        return response;
     }
 
     private <T> Object batchSendDataListToSgx(String url, List<List<T>> dataList) {
@@ -132,6 +123,26 @@ public class DataServiceImpl implements DataService {
     @Override
     public Object queryProjectLedgerFromSgx() {
         return queryDataListFromSgx("/project_ledger/get", "");
+    }
+
+    @Override
+    public Object transferProjectReceiptToSgx() {
+        LastUpdatedTime updatedTime = getLastUpdatedTime("/project_receipt/lastUpdateTime");
+        if (updatedTime.invalidTime()) {
+            return updatedTime.getMessage();
+        }
+
+        List<List<ProjectReceiptVo>> projectReceipts = projectReceiptService.get(updatedTime.getLastTime());
+        if (ObjectUtils.isEmpty(projectReceipts)) {
+            return "查询不到项目分账协议，请确认项目分账协议是否已经设置上链。";
+        }
+
+        return batchSendDataListToSgx("/project_receipt/set", projectReceipts);
+    }
+
+    @Override
+    public Object queryProjectReceiptFromSgx() {
+        return queryDataListFromSgx("/project_receipt/get", "");
     }
 
     @Override

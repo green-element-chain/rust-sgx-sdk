@@ -60,41 +60,112 @@ impl ServerParam {
 #[derive(Deserialize, Debug)]
 pub struct UnionpayTranUrl {
     test_url: Option<bool>,
-    pub front_url: Option<String>,
-    pub back_url: Option<String>,
-    pub query_url: Option<String>,
-    pub sms_url: Option<String>,
-    pub merchant_url: Option<String>,
-    pub merchant_query_url: Option<String>,
+    front_url: Option<String>,
+    back_url: Option<String>,
+    query_url: Option<String>,
+    sms_url: Option<String>,
+    merchant_url: Option<String>,
+    merchant_query_url: Option<String>,
 }
 
 impl UnionpayTranUrl {
     pub fn is_test(&self) -> bool {
         self.test_url.unwrap()
     }
+
+    pub fn tran_url(&self) -> &String {
+        self.back_url.as_ref().unwrap()
+    }
+
+    pub fn tran_url_b2b(&self) -> &String {
+        self.front_url.as_ref().unwrap()
+    }
+
+    pub fn query_url(&self) -> &String {
+        self.query_url.as_ref().unwrap()
+    }
+
+    pub fn sms_url(&self) -> &String {
+        self.sms_url.as_ref().unwrap()
+    }
+
+    pub fn mer_url(&self) -> &String {
+        self.merchant_url.as_ref().unwrap()
+    }
+
+    pub fn mer_query_url(&self) -> &String {
+        self.merchant_query_url.as_ref().unwrap()
+    }
 }
 
 #[derive(Deserialize, Debug)]
 pub struct UnionpayTranParam {
-    use_test_url: Option<bool>,
-    pub tran_front_type: Option<String>,
-    pub tran_mer_id: Option<String>,
-    pub tran_redirect: Option<String>,
-    pub notify_front: Option<String>,
-    pub notify_back: Option<String>,
-    pub notify_sign: Option<String>,
-    pub remote_ip: Option<String>,
-    pub signature_field: Option<String>,
-    pub signature_exclude: Option<String>,
-    pub signature_cert_type: Option<String>,
-    pub signature_cert_password: Option<String>,
-    pub signature_cert_tran: Option<String>,
-    pub signature_cert_verify: Option<String>,
+    tran_type_b2b: Option<String>,
+    tran_mer_id: Option<String>,
+    tran_redirect: Option<String>,
+    notify_front: Option<String>,
+    notify_back: Option<String>,
+    notify_sign: Option<String>,
+    remote_ip: Option<String>,
+    signature_field: Option<String>,
+    signature_exclude: Option<String>,
+    signature_cert_type: Option<String>,
+    signature_cert_password: Option<String>,
+    signature_cert_tran: Option<String>,
+    signature_cert_verify: Option<String>,
 }
 
 impl UnionpayTranParam {
-    pub fn is_test(&self) -> bool {
-        self.use_test_url.unwrap()
+    pub fn tran_type_b2b(&self) -> &String {
+        self.tran_type_b2b.as_ref().unwrap()
+    }
+
+    pub fn mer_id(&self) -> &String {
+        self.tran_mer_id.as_ref().unwrap()
+    }
+
+    pub fn redirect_url(&self) -> &String {
+        self.tran_redirect.as_ref().unwrap()
+    }
+
+    pub fn notify_tran_url_b2b(&self) -> &String {
+        self.notify_front.as_ref().unwrap()
+    }
+
+    pub fn notify_tran_url(&self) -> &String {
+        self.notify_back.as_ref().unwrap()
+    }
+
+    pub fn notify_sign_url(&self) -> &String {
+        self.notify_sign.as_ref().unwrap()
+    }
+
+    pub fn remote_ip(&self) -> &String {
+        self.remote_ip.as_ref().unwrap()
+    }
+
+    pub fn sign_field(&self) -> &String {
+        self.signature_field.as_ref().unwrap()
+    }
+
+    pub fn sign_exclude(&self) -> &String {
+        self.signature_exclude.as_ref().unwrap()
+    }
+
+    pub fn sign_cert_type(&self) -> &String {
+        self.signature_cert_type.as_ref().unwrap()
+    }
+
+    pub fn sign_cert_pwd(&self) -> &String {
+        self.signature_cert_password.as_ref().unwrap()
+    }
+
+    pub fn sign_cert_tran(&self) -> &String {
+        self.signature_cert_tran.as_ref().unwrap()
+    }
+
+    pub fn sign_cert_verify(&self) -> &String {
+        self.signature_cert_verify.as_ref().unwrap()
     }
 }
 
@@ -144,20 +215,17 @@ impl ApplicationConfig {
         self.server_param.as_ref().unwrap().get(0).unwrap()
     }
 
-    pub fn get_tran_url(&self) -> Option<&UnionpayTranUrl> {
-        let tran_param = self.get_tran_param();
-        let use_for_test: bool = tran_param.is_test();
-
+    pub fn unionpay_tran_url(&self) -> &UnionpayTranUrl {
         let urls = self.unionpay_tran_url.as_ref().unwrap();
-        for x in urls {
-            if x.is_test() == use_for_test {
-                return Some(x);
+        for x in urls.iter() {
+            if x.is_test() {
+                return x;
             }
         }
-        None
+        panic!("Invalid tranUrl, please check unionpay configure.");
     }
 
-    pub fn get_tran_param(&self) -> &UnionpayTranParam {
+    pub fn unionpay_tran_param(&self) -> &UnionpayTranParam {
         self.unionpay_tran_param.as_ref().unwrap().get(0).unwrap()
     }
 }

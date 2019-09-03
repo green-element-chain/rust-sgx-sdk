@@ -36,6 +36,7 @@ base64      = { path = "../../../../third_party/rust-base64" }
 webpki      = { path = "../../../../third_party/webpki" }
 webpki-roots= { path = "../../../../third_party/webpki-roots" }
 httparse    = { version = "1.3.2", default-features=false }
+http_req 	= { path = "../../../../third_party/http_req" }
 itertools   = { version = "0.7.8" , default-features = false, features = [] }
 rust-sqlite = { path = "../../../../third_party/gel-sgx/rust-sqlite3" }
 sgx_untrusted_time = { path = "../../../../third_party/time" }

@@ -6,7 +6,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use config::ApplicationConfig;
 use service::order::OrderMgr;
-use service::project::{ProjectMgr, ProjectTable};
+use service::project::{project_utils::ProjectTable, ProjectMgr};
 use service::transaction::TransactionMgr;
 use std::rc::Rc;
 use std::string::String;
@@ -61,10 +61,14 @@ impl HttpHandler {
             "/project_ledger/set" => self.project_mgr.restful_set_project_leger(request.param),
             "/project_ledger/get" => self.project_mgr.restful_get_project_leger(request.param),
 
+            "/project_receipt/lastUpdateTime" => self.project_mgr.restful_get_updated_time(ProjectTable::Receipt),
+            "/project_receipt/set" => self.project_mgr.restful_set_project_receipt(request.param),
+            "/project_receipt/get" => self.project_mgr.restful_get_project_receipt(request.param),
+
             "/project_bill/create" => self.project_mgr.restful_create_bill(request.param),
             "/project_bill/get" => self.project_mgr.restful_get_project_bill(request.param),
 
-            "/payment" => self.transaction_mgr.payment(request.param),
+            "/payment" => self.transaction_mgr.restful_payment(request.param),
             "/payment/b2b" => self.transaction_mgr.payment_b2b(request.param),
 
             "/notify" => self.transaction_mgr.notify(request.param),

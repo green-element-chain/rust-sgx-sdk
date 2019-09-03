@@ -24,8 +24,10 @@ public class ProjectLedgerService {
 
     public List<List<ProjectLedgerVo>> get(Integer time) {
         //上链状态：0是未上链，1是已上链，2是已失效
-        StringBuilder sql = new StringBuilder("select")
-            .append(" project_id,order_date,date_format(first_bill_start_time, '%Y-%m-%d'),cycle,ledger_date,message")
+        //分账模式：LedgerByRate为1，LedgerByMoney为0
+        StringBuilder sql = new StringBuilder()
+            .append("select project_id,order_date,date_format(first_bill_start_time, '%Y-%m-%d'),cycle,ledger_date")
+            .append(",case model when \"LedgerByRate\" then 1 else 0 end as model,message")
             .append(" from project_ledger_account")
             .append(" where is_chain = 1 and (update_time is null or update_time >")
             .append(time).append(")");

@@ -8,6 +8,7 @@ extern crate base64;
 extern crate bit_vec;
 extern crate chrono;
 extern crate env_logger_gel as env_logger;
+extern crate http_req;
 extern crate httparse;
 extern crate itertools;
 #[macro_use]

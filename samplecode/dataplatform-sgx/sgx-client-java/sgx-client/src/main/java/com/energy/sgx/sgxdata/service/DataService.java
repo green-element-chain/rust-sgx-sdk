@@ -22,7 +22,6 @@ public interface DataService {
      */
     Object queryAssetOrderFromSgx(Integer assetType, String date);
 
-
     /**
      * 转移新的项目关联的资产到SGX服务器
      *
@@ -31,7 +30,7 @@ public interface DataService {
     Object transferProjectAssetToSgx();
 
     /**
-     * 转移新的项目分账协议到SGX服务器
+     * 转移项目分账协议到SGX服务器
      *
      * @return SGX服务器响应消息
      */
@@ -43,6 +42,20 @@ public interface DataService {
      * @return SGX服务器响应消息
      */
     Object queryProjectLedgerFromSgx();
+
+    /**
+     * 转移项目分账卡域信息到SGX服务器
+     *
+     * @return SGX服务器响应消息
+     */
+    Object transferProjectReceiptToSgx();
+
+    /**
+     * 从SGX服务器查询项目分账卡域信息
+     *
+     * @return SGX服务器响应消息
+     */
+    Object queryProjectReceiptFromSgx();
 
     /**
      * 生成项目账单指令发送到SGX服务器

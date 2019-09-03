@@ -1,5 +1,6 @@
 package com.energy.sgx.sgxdata.service;
 
+import java.util.Calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,7 +17,7 @@ public class ScheduledService {
     @Autowired
     private DataService dataService;
     @Autowired
-    private UnionpayService unionpayService;
+    private TransactionService transactionService;
 
     @Scheduled(cron = "0 0 2 * * *")
     public void scheduleOfData() {
@@ -35,5 +36,8 @@ public class ScheduledService {
     @Scheduled(cron = "0 0 3 * * *")
     public void scheduleOfPayment() {
         log.info("the schedule of payment task run at {}", System.currentTimeMillis());
+        Calendar c = Calendar.getInstance();
+        Integer day = c.get(Calendar.DAY_OF_MONTH);
+        transactionService.paymentToSgxServer(null, day);
     }
 }

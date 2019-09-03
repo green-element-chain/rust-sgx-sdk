@@ -25,20 +25,18 @@ pub struct ProjectLedger {
     pub billStartDate: String,
     pub billCycle: i32,
     pub ledgerDate: i32,
+    pub ledgerMode: i32,
     pub ledgerContent: String,
 }
 
-impl ProjectLedger {
-    pub fn new() -> ProjectLedger {
-        ProjectLedger {
-            projectId: 0,
-            billDate: 0,
-            billStartDate: String::from(""),
-            billCycle: 1,
-            ledgerDate: 0,
-            ledgerContent: String::from(""),
-        }
-    }
+#[allow(non_snake_case)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ProjectReceipt {
+    pub projectId: i32,
+    pub chargeMode: i32,
+    pub cardNum: String,
+    pub cardUser: String,
+    pub mobile: String,
 }
 
 #[allow(dead_code)]
@@ -105,16 +103,17 @@ pub struct ProjectBill {
     pub status: i32,
 }
 
-impl ProjectBill {
-    pub fn new() -> ProjectBill {
-        ProjectBill {
-            id: 0,
-            projectId: 0,
-            beginDate: String::from(""),
-            endDate: String::from(""),
-            amount: 0,
-            orderNo: String::from(""),
-            status: 0,
-        }
-    }
+#[allow(non_snake_case)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PaymentParam {
+    pub bill: u32,
+    pub day: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TranRequestParam {
+    pub split_msg: String,
+    pub split_mode: i32,
+    pub order_no: String,
+    pub amount: i64,
 }

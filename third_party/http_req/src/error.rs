@@ -1,5 +1,6 @@
 //!error system
 use std::{error::Error as StdErr, fmt, io, num, str};
+use std::prelude::v1::*;
 
 #[derive(Debug, PartialEq)]
 pub enum ParseErr {

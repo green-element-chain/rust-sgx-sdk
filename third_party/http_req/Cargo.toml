@@ -11,10 +11,10 @@ keywords = ["http", "client", "request"]
 edition = "2018"
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
-sgx_tstd = { git = "https://github.com/baidu/rust-sgx-sdk", rev = "v1.0.8", features = ["net"] }
+sgx_tstd = { path =  "../../sgx_tstd" }
 
 [dependencies]
-rustls = { git = "https://github.com/mesalock-linux/rustls", branch = "mesalock_sgx" }
-webpki = { git = "https://github.com/mesalock-linux/webpki", branch = "mesalock_sgx" }
-webpki-roots = { git = "https://github.com/mesalock-linux/webpki-roots", branch = "mesalock_sgx" }
+rustls = { path = "../rustls" }
+webpki = { path = "../webpki" }
+webpki-roots = { path = "../webpki-roots" }
 unicase = { path = "../unicase" }
