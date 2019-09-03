@@ -320,9 +320,9 @@ impl Connection {
                 let p_result_len = &mut result_len as *mut u32;
 
                 const RET_QUOTE_BUF_LEN: u32 = 2048;
-                let mut return_quote_buf: [u8; RET_QUOTE_BUF_LEN as usize] =
+                let mut return_json_buf: [u8; RET_QUOTE_BUF_LEN as usize] =
                     [0; RET_QUOTE_BUF_LEN as usize];
-                let p_quote = return_quote_buf.as_mut_ptr();
+                let p_result = return_json_buf.as_mut_ptr();
                 let maxlen = RET_QUOTE_BUF_LEN;
 
                 let result = unsafe {
@@ -330,19 +330,19 @@ impl Connection {
                         &mut rt as *mut sgx_status_t,
                         inputstr.as_ptr(),
                         inputstr.len() as u32,
-                        p_quote,
+                        p_result,
                         maxlen,
                         p_result_len,
                     )
                 };
 
-                println!("quote_len get value:{}", result_len);
+                println!("result str length is:{}", result_len);
 
                 if result != sgx_status_t::SGX_SUCCESS {
                     panic!("not sgx success");
                 }
 
-                let str_slice = unsafe { slice::from_raw_parts(p_quote, *p_result_len as usize) };
+                let str_slice = unsafe { slice::from_raw_parts(p_result, *p_result_len as usize) };
                 let result_json_str = std::str::from_utf8(str_slice).unwrap();
                 println!("different array,return str is: {}", result_json_str);
 

@@ -130,7 +130,7 @@ pub extern "C" fn ocall_empty(
 
     let resultstr = buzfn(jsonstr).as_bytes();
 
-    let result_slice = unsafe { slice::from_raw_parts_mut(p_result_str, inside_len as usize) };
+    let result_slice = unsafe { slice::from_raw_parts_mut(p_result_str, maxlen as usize) };
 
     let mut j = 0;
     for x in resultstr {
@@ -139,8 +139,9 @@ pub extern "C" fn ocall_empty(
     }
 
     unsafe {
-        *p_result_len = inside_len;
+        *p_result_len = j as u32;
     };
+    println!("inside_len is :{}", inside_len);
     sgx_status_t::SGX_SUCCESS
 }
 
@@ -294,8 +295,9 @@ fn main() {
 
     //call start_db;
     println!("start_db");
+
     let mut conn;
-    match sqlitedb::sqlite::start_db(existed) {
+    match sqlitedb::sqlite::start_db(0) {
         Ok(x) => conn = x,
         _ => panic!("create database failed"),
     }

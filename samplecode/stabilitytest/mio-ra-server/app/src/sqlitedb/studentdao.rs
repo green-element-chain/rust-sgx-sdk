@@ -24,22 +24,23 @@ pub fn base_student_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
         println!("----------------------------------");
         delete_student(conn);
         println!("----------------------------------");
-    }
 
-    //step 4 : select student sum
-    println!("----------------------------------");
-    select_student_sum(conn);
-    println!("----------------------------------");
+        //step 4 : select student sum
+        println!("----------------------------------");
+        select_student_sum(conn);
+        println!("----------------------------------");
 
-    //step 5 : search student list
-    println!("----------------------------------");
-    match select_student_list(conn) {
-        Ok(y) => {
-            println!("SELECT * FROM student");
-            println!("Ok: {:?}", y);
+        //step 5 : search student list
+        println!("----------------------------------");
+        match select_student_list(conn) {
+            Ok(y) => {
+                println!("SELECT * FROM student");
+                println!("Ok: {:?}", y);
+            }
+            Err(oops) => lose(format!("oops!: {:?}", oops).as_ref()),
         }
-        Err(oops) => lose(format!("oops!: {:?}", oops).as_ref()),
     }
+
     println!("----------------database operations end------------------");
 }
 

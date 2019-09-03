@@ -25,20 +25,21 @@ pub fn base_teacher_ops(conn: &mut DatabaseConnection, &exist_flag: &bool) {
         println!("----------------------------------");
         delete_teacher(conn);
         println!("----------------------------------");
-    }
-    //step 4 : select teacher sum
-    println!("----------------------------------");
-    select_teacher_sum(conn);
-    println!("----------------------------------");
 
-    //step 5 : search teacher list
-    println!("----------------------------------");
-    match select_teacher_list(conn) {
-        Ok(y) => {
-            println!("SELECT * FROM teacher");
-            println!("Ok: {:?}", y);
+        //step 4 : select teacher sum
+        println!("----------------------------------");
+        select_teacher_sum(conn);
+        println!("----------------------------------");
+
+        //step 5 : search teacher list
+        println!("----------------------------------");
+        match select_teacher_list(conn) {
+            Ok(y) => {
+                println!("SELECT * FROM teacher");
+                println!("Ok: {:?}", y);
+            }
+            Err(oops) => lose(format!("oops!: {:?}", oops).as_ref()),
         }
-        Err(oops) => lose(format!("oops!: {:?}", oops).as_ref()),
     }
 }
 
