@@ -144,14 +144,14 @@ impl ProjectBillMgr {
         let projects: Vec<ProjectLedger> = self.ledger_mgr.get_project_ledgers_with_input(param);
         if projects.len() == 0 {
             return SgxServerResponse::failed(
-                format!("{} {}, project ledger is empty.", msg, "failed."));
+                format!("{} {}, project ledger is empty.", msg, "failed"));
         }
 
         let update_time_at = time::now_str();
         for data in projects.iter() {
             if !self.create_one_bill(&data, update_time_at.as_str()) {
                 return SgxServerResponse::failed(
-                    format!("{} {}, project {}", msg, "failed.", data.projectId));
+                    format!("{} {}, project {}", msg, "failed", data.projectId));
             }
         }
         SgxServerResponse::failed(format!("{} {}", msg, "success."))

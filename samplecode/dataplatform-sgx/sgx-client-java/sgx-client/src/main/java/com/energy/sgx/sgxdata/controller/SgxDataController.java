@@ -81,13 +81,18 @@ public class SgxDataController {
 
     @ApiOperation(value = "创建项目账单", notes = "触发SGX Server服务器生成项目的账单数据。")
     @ApiImplicitParams({
+        @ApiImplicitParam(name = "day", value = "账单日", required = true, dataType = "int", defaultValue = "1"),
         @ApiImplicitParam(name = "projectId", value = "项目ID", dataType = "int", defaultValue = "1")
     })
     @PostMapping("project/bill/create")
     public Object generateProjectBillInSgxServer(
+        @RequestParam Integer day,
         @RequestParam(required = false) Integer projectId) {
         log.info("generate project bill data at {}", System.currentTimeMillis());
-        return dataService.generateProjectBillToSgx(projectId);
+        if (day < 0 || day >= 30) {
+            throw new RuntimeException("Invalid param day");
+        }
+        return dataService.generateProjectBillToSgx(day, projectId);
     }
 
     @ApiOperation(value = "从SGX查询项目账单协议", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")

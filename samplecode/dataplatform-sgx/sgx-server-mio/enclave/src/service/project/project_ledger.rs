@@ -71,15 +71,18 @@ impl ProjectLedgerMgr {
     }
 
     pub fn get_project_ledgers_with_input(&self, param: String) -> Vec<ProjectLedger> {
-        match serde_json::from_str::<Vec<ProjectID>>(param.as_str()) {
-            Ok(ref mut v) => {
-                let ids = project_utils::get_ids(v);
-                let sql = format!("select * from project_ledger where project_id in({})", ids.as_str());
+        match serde_json::from_str::<ProjectBillReq>(param.as_str()) {
+            Ok(ref mut req) => {
+                let mut sql = format!("select * from project_ledger where bill_date = {}", req.day);
+                if !req.projects.is_empty() {
+                    let ids = project_utils::get_ids(&req.projects);
+                    sql.push_str(format!(" and project_id in({})", ids.as_str()).as_ref());
+                }
                 self.inner_project_ledgers(sql.as_str())
             }
-            Err(_) => {
-                let sql = "select * from project_ledger";
-                self.inner_project_ledgers(sql)
+            Err(e) => {
+                error!("serde_json error: {}", e);
+                Vec::new()
             }
         }
     }

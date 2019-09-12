@@ -1,4 +1,3 @@
-use service::project::dto::ProjectID;
 use service::response::LastUpdatedTime;
 use std::string::String;
 use std::vec::Vec;
@@ -11,13 +10,13 @@ pub enum ProjectTable {
     Receipt,
 }
 
-pub fn get_ids(projects: &Vec<ProjectID>) -> String {
+pub fn get_ids(projects: &Vec<u32>) -> String {
     let mut ids = String::new();
 
     let mut index: i32 = 0;
     let last_pos: i32 = (projects.len() - 1) as i32;
     for x in projects.iter() {
-        ids.push_str(format!("{}", x.id).as_str());
+        ids.push_str(format!("{}", x).as_str());
         if index != last_pos {
             ids.push_str(",");
         }

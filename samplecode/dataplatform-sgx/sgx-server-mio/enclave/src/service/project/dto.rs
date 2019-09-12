@@ -6,13 +6,14 @@ use std::vec::Vec;
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ProjectID {
-    pub id: u32,
+pub struct ProjectBillReq {
+    pub day: u16,
+    pub projects: Vec<u32>,
 }
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ProjectAsset {
+pub struct ProjectAssetReq {
     pub projectId: u32,
     pub assets: Vec<u32>,
 }

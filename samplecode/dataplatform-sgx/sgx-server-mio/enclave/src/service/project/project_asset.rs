@@ -1,4 +1,4 @@
-use service::project::dto::ProjectAsset;
+use service::project::dto::ProjectAssetReq;
 use service::response::SgxServerResponse;
 use std::string::String;
 use std::sync::Arc;
@@ -33,7 +33,7 @@ impl ProjectAssetMgr {
 
     pub fn set_project_asset(&self, param: String) -> String {
         let msg = "set_project_asset data to sgx server";
-        let assets: Vec<ProjectAsset> = serde_json::from_str(param.as_str()).expect("Can't deserialize");
+        let assets: Vec<ProjectAssetReq> = serde_json::from_str(param.as_str()).expect("Can't deserialize");
 
         let update_time_at = time::now_str();
         for data in assets.iter() {

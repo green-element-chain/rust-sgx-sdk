@@ -30,7 +30,9 @@ public class ScheduledService {
     @Scheduled(cron = "0 30 2 * * *")
     public void scheduleOfBill() {
         log.info("the schedule of bill task run at {}", System.currentTimeMillis());
-        dataService.generateProjectBillToSgx(null);
+        Calendar c = Calendar.getInstance();
+        Integer day = c.get(Calendar.DAY_OF_MONTH);
+        dataService.generateProjectBillToSgx(day, null);
     }
 
     @Scheduled(cron = "0 0 3 * * *")

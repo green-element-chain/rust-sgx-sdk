@@ -60,10 +60,11 @@ public interface DataService {
     /**
      * 生成项目账单指令发送到SGX服务器
      *
+     * @param day 生成账单的日期，每月的几日
      * @param projectId 项目ID，允许为空
      * @return SGX服务器响应消息
      */
-    Object generateProjectBillToSgx(Integer projectId);
+    Object generateProjectBillToSgx(Integer day, Integer projectId);
 
     /**
      * 从SGX服务器查询项目账单信息

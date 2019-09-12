@@ -2,7 +2,7 @@ package com.energy.sgx.sgxdata.service.impl;
 
 import com.energy.sgx.sgxdata.dto.request.AssetOrderVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectAssetVo;
-import com.energy.sgx.sgxdata.dto.request.ProjectIDVo;
+import com.energy.sgx.sgxdata.dto.request.ProjectBillGenVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectLedgerVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectReceiptVo;
 import com.energy.sgx.sgxdata.dto.request.SocketMessage;
@@ -15,7 +15,6 @@ import com.energy.sgx.sgxdata.service.impl.project.ProjectAssetService;
 import com.energy.sgx.sgxdata.service.impl.project.ProjectLedgerService;
 import com.energy.sgx.sgxdata.service.impl.project.ProjectReceiptService;
 import com.energy.utils.JsonUtil;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
@@ -146,13 +145,13 @@ public class DataServiceImpl extends ServiceBase implements DataService {
     }
 
     @Override
-    public Object generateProjectBillToSgx(Integer projectId) {
-        String dataJsonStr = "";
+    public Object generateProjectBillToSgx(Integer day, Integer projectId) {
+        ProjectBillGenVo billGenVo = new ProjectBillGenVo(day);
+
         if (projectId != null) {
-            List<ProjectIDVo> list = new ArrayList<>();
-            list.add(new ProjectIDVo(projectId));
-            dataJsonStr = JsonUtil.toString(list);
+            billGenVo.add(projectId);
         }
+        String dataJsonStr = JsonUtil.toString(billGenVo);
         return sendDataToSgx("/project_bill/create", dataJsonStr);
     }
 
