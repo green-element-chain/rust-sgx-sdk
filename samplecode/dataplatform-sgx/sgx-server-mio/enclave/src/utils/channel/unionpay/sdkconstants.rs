@@ -51,7 +51,6 @@ pub const PARAM_SPLIT_METHOD: &str = "SplitMethod";
 pub const PARAM_MER_SPLIT_MSG: &str = "MerSplitMsg";
 /** 防钓鱼客户浏览器IP */
 pub const PARAM_REMOTE_ADDR: &str = "RemoteAddr";
-
 /** 账号. */
 pub const PARAM_CARD_NO: &str = "CardNo";
 /** 账户名称. */
@@ -72,8 +71,18 @@ pub const PARAM_SIGN_STATUS: &str = "SignState";
 pub const PARAM_SIGN_CERT_ID: &str = "CertId";
 /** 签名. */
 pub const PARAM_SIGNATURE: &str = "Signature";
-
 /** 应答码. */
 pub const PARAM_RESP_CODE: &str = "respCode";
 /** 应答码信息. */
 pub const PARAM_RESP_MSG: &str = "respMsg";
+
+
+/** 版本号，固定值 */
+pub const SIGN_VERSION: &str = "20140728";
+pub const FAST_PAY_VERSION: &str = "20150922";
+/** 业务类型：固定值0001 */
+pub const BUSI_TYPE: &str = "0001";
+/** 分帐类型：0001实时分帐 */
+pub const SPLIT_TYPE: &str = "0001";
+/** 交易类型： 0001 个人网瘾支付 0004 快捷支付 0608 快捷签约短信 */
+pub const TRAN_TYPE: &str = "0004";

@@ -29,7 +29,9 @@ impl ProjectReceiptMgr {
             project_id int not null,
             charge_model int not null,
             card_num varchar(255) null,
-            card_name varchar(20) null,
+            card_user varchar(20) null,
+            cert_type int null,
+            cert_no varchar(50) null,
             mobile varchar(12) null,
             sign_status smallint not null default 0,
             sign_order_no varchar(32) null,
@@ -51,12 +53,14 @@ impl ProjectReceiptMgr {
             }
 
             sql = format!("insert into project_receipt(\
-                project_id,charge_model,card_num,card_name,mobile,update_at\
-                ) values({},{},'{}','{}','{}','{}')",
+                project_id,charge_model,card_num,card_user,cert_type,cert_no,mobile,update_at\
+                ) values({},{},'{}','{}',{},'{}','{}','{}')",
                 data.projectId,
                 data.chargeMode,
                 data.cardNum,
                 data.cardUser,
+                data.certType,
+                data.certNo,
                 data.mobile,
                 update_time_at,
             );
@@ -69,7 +73,7 @@ impl ProjectReceiptMgr {
 
     pub fn get_project_receipt(&self, _param: String) -> String {
         let msg = "get_project_receipt data from sgx server";
-        let sql = "select project_id,charge_model,card_num,card_name,mobile,update_at \
+        let sql = "select project_id,charge_model,card_num,card_user,cert_type,cert_no,mobile \
             from project_receipt order by project_id desc limit 50";
 
         let statement: SqliteResult<PreparedStatement> = self.db_context.query(sql);
@@ -88,7 +92,9 @@ impl ProjectReceiptMgr {
                     chargeMode: row.get(1),
                     cardNum: row.get(2),
                     cardUser: row.get(3),
-                    mobile: row.get(4),
+                    certType: row.get(4),
+                    certNo: row.get(5),
+                    mobile: row.get(6),
                 }, data_vec))
             });
         let project_receipts: Vec<ProjectReceipt> = match result {
@@ -99,5 +105,9 @@ impl ProjectReceiptMgr {
             }
         };
         SgxServerResponse::success(format!("{}", serde_json::to_string(&project_receipts).unwrap()))
+    }
+
+    pub fn get_project_receipt_one(&self, project: u32) -> Option<ProjectReceipt> {
+        None
     }
 }

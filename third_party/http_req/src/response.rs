@@ -1,9 +1,9 @@
 //! parsing server response
+use std::prelude::v1::*;
 use crate::{
     error::{Error, ParseErr},
     uri::Uri,
 };
-use std::prelude::v1::*;
 use std::{
     collections::{hash_map, HashMap},
     fmt,

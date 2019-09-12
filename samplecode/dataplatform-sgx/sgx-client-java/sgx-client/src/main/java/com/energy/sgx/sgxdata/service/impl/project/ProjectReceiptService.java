@@ -23,9 +23,12 @@ public class ProjectReceiptService {
     private EntityManager em;
 
     public List<List<ProjectReceiptVo>> get(Integer time) {
-        StringBuilder sql = new StringBuilder()
-            .append("select project_id,charge_model")
-            .append(",ifnull(card_num,'') as card,ifnull(name,'') as name, ifnull(mobile,'') as mobile")
+        StringBuilder sql = new StringBuilder("select project_id,charge_model")
+            .append(",ifnull(card_num,'') as card")
+            .append(",ifnull(name,'') as name")
+            .append(",ifnull(credential_type_id,0) as certType")
+            .append(",ifnull(id_num,'') as certNo")
+            .append(",ifnull(mobile,'') as mobile")
             .append(" from project_receipt")
             .append(" where update_time >")
             .append(time);

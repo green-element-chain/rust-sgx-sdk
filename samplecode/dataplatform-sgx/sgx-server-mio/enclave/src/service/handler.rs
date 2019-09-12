@@ -21,6 +21,7 @@ pub struct Message {
 
 #[derive(Clone)]
 pub struct HttpHandler {
+    config: Rc<ApplicationConfig>,
     db_context: Arc<DbContext>,
     order_mgr: OrderMgr,
     project_mgr: ProjectMgr,
@@ -36,11 +37,16 @@ impl HttpHandler {
         ));
 
         HttpHandler {
+            config: app_config.clone(),
             db_context: rc_context.clone(),
             order_mgr: OrderMgr::new(&rc_context),
             project_mgr: ProjectMgr::new(&rc_context),
             transaction_mgr: TransactionMgr::new(&app_config, &rc_context),
         }
+    }
+
+    pub fn tcp_limit_size(&self) -> u32 {
+        self.config.server_param().get_tcp_limit_size()
     }
 
     //客户端业务请求分发

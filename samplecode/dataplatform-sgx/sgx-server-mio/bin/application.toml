@@ -1,6 +1,8 @@
 # 服务器参数
 [[server_param]]
 port = 3443
+# max stream limit size 15k
+tcp_limit_size = 15360
 log_level = "info"
 intel_cert_use = false
 intel_ca = "cert/server/ca.crt"
@@ -44,5 +46,5 @@ signature_field = "Signature"
 signature_exclude = "Signature,CertId"
 signature_cert_type = "PKCS12"
 signature_cert_password = "test123456"
-signature_cert_tran = "cert/unionpay/nlkf_payment.pfx"
+signature_cert_tran = "cert/unionpay/sign.crt"
 signature_cert_verify = "cert/unionpay/cp-test.cer"

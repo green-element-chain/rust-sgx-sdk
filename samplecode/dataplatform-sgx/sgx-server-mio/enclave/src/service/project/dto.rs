@@ -36,6 +36,8 @@ pub struct ProjectReceipt {
     pub chargeMode: i32,
     pub cardNum: String,
     pub cardUser: String,
+    pub certType: i32,
+    pub certNo: String,
     pub mobile: String,
 }
 
@@ -112,8 +114,9 @@ pub struct PaymentParam {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TranRequestParam {
+    pub project_id: i32,
     pub split_msg: String,
-    pub split_mode: i32,
+    pub split_method: i32,
     pub order_no: String,
     pub amount: i64,
 }

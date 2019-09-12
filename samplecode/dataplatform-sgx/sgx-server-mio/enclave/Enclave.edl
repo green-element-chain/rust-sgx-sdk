@@ -20,6 +20,9 @@ enclave {
     };
 
     untrusted {
+        /* define OCALLs for net */
+        sgx_status_t ocall_get_url_socket([in, string] const char *req_url, [out] int *ret_fd);
+
         /* define OCALLs for intel sgx report */
         sgx_status_t ocall_sgx_init_quote([out] sgx_target_info_t *ret_ti, [out] sgx_epid_group_id_t *ret_gid);
         sgx_status_t ocall_get_ias_socket([out] int *ret_fd);

@@ -16,13 +16,14 @@ sgx_tcrypto = { path = "../../../../sgx_tcrypto" }
 sgx_types   = { path = "../../../../sgx_types" }
 sgx_tse     = { path = "../../../../sgx_tse"}
 sgx_tstd    = { path = "../../../../sgx_tstd", features = ["net", "untrusted_fs"] }
+sgx_libc 	= { path = "../../../../sgx_libc" }
 
 [dependencies]
 mio         = { path = "../../../../third_party/mio" }
 log_gel 	= { path =  "../../../../third_party/mesalock-sgx/log-sgx" }
 env_logger_gel  = { path = "../../../../third_party/mesalock-sgx/env_logger-sgx" }
 chrono      = { path = "../../../../third_party/chrono", features = ["clock"] }
-toml		= { path = "../../../../third_party/toml-rs" }
+toml		= { path = "../../../../third_party/gel-sgx/toml-rs" }
 serde       = { path = "../../../../third_party/serde-rs/serde/serde" }
 serde_json  = { path = "../../../../third_party/serde-rs/json"}
 serde_derive = { path = "../../../../third_party/serde-rs/serde/serde_derive" }
@@ -40,3 +41,4 @@ http_req 	= { path = "../../../../third_party/http_req" }
 itertools   = { version = "0.7.8" , default-features = false, features = [] }
 rust-sqlite = { path = "../../../../third_party/gel-sgx/rust-sqlite3" }
 sgx_untrusted_time = { path = "../../../../third_party/time" }
+rust-crypto = { path = "../../../../third_party/rust-crypto" }

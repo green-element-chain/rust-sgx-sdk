@@ -7,6 +7,7 @@
 extern crate base64;
 extern crate bit_vec;
 extern crate chrono;
+extern crate crypto;
 extern crate env_logger_gel as env_logger;
 extern crate http_req;
 extern crate httparse;
@@ -20,6 +21,7 @@ extern crate rustls;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
+extern crate sgx_libc;
 extern crate sgx_rand;
 extern crate sgx_tcrypto;
 extern crate sgx_tse;
@@ -56,5 +58,5 @@ pub extern "C" fn run_server(socket_fd: c_int) -> sgx_status_t {
     //debug!("{:?}", app_config);
 
     let server = HttpServer::new(Rc::new(app_config));
-    return server.start();
+    server.start()
 }

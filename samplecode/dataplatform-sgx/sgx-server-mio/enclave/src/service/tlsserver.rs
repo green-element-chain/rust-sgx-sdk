@@ -9,6 +9,7 @@ use std::io::{self, Read, Write};
 use std::net::Shutdown;
 use std::rc::Rc;
 use std::str;
+use std::string::String;
 use std::sync::Arc;
 use std::vec::Vec;
 
@@ -90,6 +91,7 @@ struct Connection {
     closed: bool,
     tls_session: rustls::ServerSession,
     sent_http_response: bool,
+    stream_limit_size: u32,
     http_handler: Arc<HttpHandler>,
 }
 
@@ -103,6 +105,7 @@ impl Connection {
             closed: false,
             tls_session,
             sent_http_response: false,
+            stream_limit_size: handler.tcp_limit_size(),
             http_handler: handler.clone(),
         }
     }
@@ -160,7 +163,6 @@ impl Connection {
     fn try_plain_read(&mut self) {
         // Read and process all available plaintext.
         let mut buf = Vec::new();
-
         let rc = self.tls_session.read_to_end(&mut buf);
         if rc.is_err() {
             //debug!("plaintext read failed: {:?}", rc);
@@ -169,8 +171,18 @@ impl Connection {
         }
 
         if !buf.is_empty() {
-            let buf_str = str::from_utf8(&buf).unwrap();
-            let resp = self.http_handler.process_request(&buf_str);
+            let mut resp: String;
+            let buf_size = buf.len() as u32;
+            if buf_size < self.stream_limit_size {
+                let buf_str = str::from_utf8(&buf).unwrap();
+                resp = self.http_handler.process_request(&buf_str);
+            } else {
+                resp = format!(
+                    "received stream is invalid, buffer size is {}, support size is {}",
+                    buf_size,
+                    self.stream_limit_size);
+                error!("{}", resp.as_str());
+            }
             self.send_http_response_once(resp.as_str());
         }
     }

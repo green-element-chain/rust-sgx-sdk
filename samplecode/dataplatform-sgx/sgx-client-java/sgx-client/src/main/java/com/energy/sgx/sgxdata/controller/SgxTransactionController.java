@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,8 +51,7 @@ public class SgxTransactionController {
 
     @ApiOperation(value = "分账交易回调通知", notes = "分账的回调通知发送到SGX Server服务器处理。")
     @PostMapping("transaction/notify/back")
-    public Object notifyPaymentResultToSgxServer(
-        HttpServletResponse response) {
+    public Object notifyPaymentResultToSgxServer() {
         String notifyParams = "";
         log.info("notify back data params {}", notifyParams);
         Object data = sgxService.paymentNotifyToSgxServer(notifyParams);
@@ -72,5 +72,23 @@ public class SgxTransactionController {
             log.info("notify front sgx response : {}", data.toString());
         }
         return data;
+    }
+
+    @ApiOperation(value = "测试用：加解密测试方法", notes = "")
+    @PostMapping("transaction/sign")
+    public Object transactionSignTest(
+        @RequestParam String data) {
+        try {
+            String charset = "UTF-8";
+            log.info("input data: {}", data);
+
+            byte[] dataBytes = data.getBytes(charset);
+            String result = new String(Base64.encodeBase64(dataBytes), charset);
+
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 }

@@ -1,10 +1,11 @@
 //! uri operations
-use crate::error::{Error, ParseErr};
 use std::prelude::v1::*;
+use crate::error::{Error, ParseErr};
 use std::{
     fmt,
     ops::{Index, Range},
     str,
+    string::ToString,
 };
 
 const HTTP_PORT: u16 = 80;
@@ -83,7 +84,7 @@ impl Uri {
     }
 
     ///Returns information about the user included in this `Uri`.
-    ///
+    ///     
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -99,7 +100,7 @@ impl Uri {
     }
 
     ///Returns host of this `Uri`.
-    ///
+    ///     
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -115,7 +116,7 @@ impl Uri {
     }
 
     ///Returns host of this `Uri` to use in a header.
-    ///
+    ///     
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -134,7 +135,7 @@ impl Uri {
     }
 
     ///Returns port of this `Uri`
-    ///
+    ///     
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -151,7 +152,7 @@ impl Uri {
 
     ///Returns port corresponding to this `Uri`.
     ///Returns default port if it hasn't been set in the uri.
-    ///
+    ///  
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -172,7 +173,7 @@ impl Uri {
     }
 
     ///Returns path of this `Uri`.
-    ///
+    ///  
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -185,7 +186,7 @@ impl Uri {
     }
 
     ///Returns query of this `Uri`.
-    ///
+    ///  
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -198,7 +199,7 @@ impl Uri {
     }
 
     ///Returns fragment of this `Uri`.
-    ///
+    ///  
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -211,7 +212,7 @@ impl Uri {
     }
 
     ///Returns resource `Uri` points to.
-    ///
+    ///  
     ///# Example
     ///```
     ///use http_req::uri::Uri;
@@ -408,7 +409,12 @@ impl str::FromStr for Authority {
             Some(RangeC::new(0, s.len()))
         };
 
-        let (host, port) = get_chunks(&s, uri_part, ":");
+        let split_by = if s.contains(']') && s.contains('[') {
+            "]:"
+        } else {
+            ":"
+        };
+        let (host, port) = get_chunks(&s, uri_part, split_by);
         let host = host.ok_or(ParseErr::UriErr)?;
 
         if let Some(p) = port {
@@ -463,8 +469,9 @@ fn get_chunks<'a>(
 
         match s[range.clone()].find(separator) {
             Some(i) => {
-                let before = Some(RangeC::new(r.start, r.start + i)).filter(|r| r.start != r.end);
-                let after = Some(RangeC::new(r.start + i + 1, r.end)).filter(|r| r.start != r.end);
+                let mid = r.start + i + separator.len();
+                let before = Some(RangeC::new(r.start, mid - 1)).filter(|r| r.start != r.end);
+                let after = Some(RangeC::new(mid, r.end)).filter(|r| r.start != r.end);
 
                 (before, after)
             }
@@ -485,17 +492,19 @@ fn get_chunks<'a>(
 mod tests {
     use super::*;
 
-    const TEST_URIS: [&str; 4] = [
+    const TEST_URIS: [&str; 5] = [
         "https://user:info@foo.com:12/bar/baz?query#fragment",
         "file:///C:/Users/User/Pictures/screenshot.png",
         "https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol",
         "mailto:John.Doe@example.com",
+        "https://[4b10:bbb0:0:d0::ba7:8001]:443/",
     ];
 
-    const TEST_AUTH: [&str; 3] = [
+    const TEST_AUTH: [&str; 4] = [
         "user:info@foo.com:12",
         "en.wikipedia.org",
         "John.Doe@example.com",
+        "[4b10:bbb0:0:d0::ba7:8001]:443",
     ];
 
     #[test]
@@ -541,6 +550,7 @@ mod tests {
         assert_eq!(uris[1].scheme(), "file");
         assert_eq!(uris[2].scheme(), "https");
         assert_eq!(uris[3].scheme(), "mailto");
+        assert_eq!(uris[4].scheme(), "https");
     }
 
     #[test]
@@ -554,6 +564,7 @@ mod tests {
         assert_eq!(uris[1].user_info(), None);
         assert_eq!(uris[2].user_info(), None);
         assert_eq!(uris[3].user_info(), None);
+        assert_eq!(uris[4].user_info(), None);
     }
 
     #[test]
@@ -567,6 +578,7 @@ mod tests {
         assert_eq!(uris[1].host(), None);
         assert_eq!(uris[2].host(), Some("en.wikipedia.org"));
         assert_eq!(uris[3].host(), None);
+        assert_eq!(uris[4].host(), Some("[4b10:bbb0:0:d0::ba7:8001]"));
     }
 
     #[test]
@@ -592,9 +604,10 @@ mod tests {
             .collect();
 
         assert_eq!(uris[0].port(), Some(12));
+        assert_eq!(uris[4].port(), Some(443));
 
-        for uri in uris.iter().skip(1) {
-            assert_eq!(uri.port(), None);
+        for i in 1..3 {
+            assert_eq!(uris[i].port(), None);
         }
     }
 
@@ -609,6 +622,7 @@ mod tests {
         assert_eq!(uris[1].corr_port(), HTTP_PORT);
         assert_eq!(uris[2].corr_port(), HTTPS_PORT);
         assert_eq!(uris[3].corr_port(), HTTP_PORT);
+        assert_eq!(uris[4].corr_port(), HTTPS_PORT);
     }
 
     #[test]
@@ -625,6 +639,7 @@ mod tests {
         );
         assert_eq!(uris[2].path(), Some("/wiki/Hypertext_Transfer_Protocol"));
         assert_eq!(uris[3].path(), Some("John.Doe@example.com"));
+        assert_eq!(uris[4].path(), None);
     }
 
     #[test]
@@ -636,7 +651,7 @@ mod tests {
 
         assert_eq!(uris[0].query(), Some("query"));
 
-        for i in 1..3 {
+        for i in 1..4 {
             assert_eq!(uris[i].query(), None);
         }
     }
@@ -650,7 +665,7 @@ mod tests {
 
         assert_eq!(uris[0].fragment(), Some("fragment"));
 
-        for i in 1..3 {
+        for i in 1..4 {
             assert_eq!(uris[i].fragment(), None);
         }
     }
@@ -666,6 +681,7 @@ mod tests {
         assert_eq!(uris[1].resource(), "/C:/Users/User/Pictures/screenshot.png");
         assert_eq!(uris[2].resource(), "/wiki/Hypertext_Transfer_Protocol");
         assert_eq!(uris[3].resource(), "John.Doe@example.com");
+        assert_eq!(uris[4].resource(), "/");
     }
 
     #[test]
@@ -696,6 +712,7 @@ mod tests {
         assert_eq!(auths[0].username(), Some("user"));
         assert_eq!(auths[1].username(), None);
         assert_eq!(auths[2].username(), Some("John.Doe"));
+        assert_eq!(auths[3].username(), None);
     }
 
     #[test]
@@ -708,6 +725,7 @@ mod tests {
         assert_eq!(auths[0].password(), Some("info"));
         assert_eq!(auths[1].password(), None);
         assert_eq!(auths[2].password(), None);
+        assert_eq!(auths[3].password(), None);
     }
 
     #[test]
@@ -720,6 +738,7 @@ mod tests {
         assert_eq!(auths[0].host(), "foo.com");
         assert_eq!(auths[1].host(), "en.wikipedia.org");
         assert_eq!(auths[2].host(), "example.com");
+        assert_eq!(auths[3].host(), "[4b10:bbb0:0:d0::ba7:8001]");
     }
 
     #[test]
@@ -732,6 +751,7 @@ mod tests {
         assert_eq!(auths[0].port(), Some(12));
         assert_eq!(auths[1].port(), None);
         assert_eq!(auths[2].port(), None);
+        assert_eq!(auths[3].port(), Some(443));
     }
 
     #[test]

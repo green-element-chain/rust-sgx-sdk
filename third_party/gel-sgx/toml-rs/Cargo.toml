@@ -23,15 +23,15 @@ members = ['test-suite']
 travis-ci = { repository = "alexcrichton/toml-rs" }
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
-sgx_tstd = { path =  "../../sgx_tstd" }
+sgx_tstd = { path =  "../../../sgx_tstd" }
 
 [dependencies]
-serde = { path = "../serde-rs/serde/serde" }
-linked-hash-map = { path = "../linked-hash-map", optional = true }
+serde = { path = "../../serde-rs/serde/serde" }
+linked-hash-map = { path = "../../linked-hash-map", optional = true }
 
 [dev-dependencies]
-serde_derive = { version = "1.0", path = "../serde-rs/serde/serde_derive" }
-serde_json = { version = "1.0", path = "../serde-rs/json" }
+serde_derive = { version = "1.0", path = "../../serde-rs/serde/serde_derive" }
+serde_json = { version = "1.0", path = "../../serde-rs/json" }
 
 [features]
 default = []

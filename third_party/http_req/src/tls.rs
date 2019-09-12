@@ -1,8 +1,9 @@
 //!secure connection over TLS
-use crate::error::Error as HttpError;
+
 use std::prelude::v1::*;
-use std::untrusted::fs::File;
+use crate::error::Error as HttpError;
 use std::{
+    untrusted::fs::File,
     io::{self, BufReader},
     path::Path,
 };

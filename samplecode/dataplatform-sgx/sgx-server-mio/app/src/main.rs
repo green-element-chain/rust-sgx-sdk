@@ -1,6 +1,7 @@
 extern crate chrono;
 extern crate dirs;
 extern crate env_logger;
+extern crate http_req;
 #[macro_use]
 extern crate log;
 extern crate serde;
@@ -19,6 +20,7 @@ use sgx_urts::SgxEnclave;
 
 mod app_config;
 mod ocall_intel;
+mod ocall_net;
 
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";

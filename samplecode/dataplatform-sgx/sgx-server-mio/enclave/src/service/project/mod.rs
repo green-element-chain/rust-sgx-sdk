@@ -14,8 +14,8 @@ pub mod dto;
 mod project_asset;
 pub mod project_bill;
 pub mod project_bill_payment;
-mod project_ledger;
-mod project_receipt;
+pub mod project_ledger;
+pub mod project_receipt;
 pub mod project_utils;
 
 #[derive(Clone)]

@@ -194,7 +194,7 @@ impl ProjectBillMgr {
     }
 
     pub fn get_tran_params(&self, param: PaymentParam) -> Vec<TranRequestParam> {
-        let mut sql = String::from("select pl.ledger_content,pl. pb.order_no,pb.amount \
+        let mut sql = String::from("select pl.ledger_content,pl.ledger_mode,pb.order_no,pb.amount \
             from project_bill pb,project_ledger pl \
             where pb.project_id=pl.project_id where 1=1");
         if param.bill != 0 {
@@ -217,10 +217,11 @@ impl ProjectBillMgr {
         let result: Result<Vec<TranRequestParam>, SqliteError> = statement.unwrap().query_fold(
             &[], vec!(), |row, data_vec| {
                 Ok(snoc(TranRequestParam {
-                    split_msg: row.get(0),
-                    split_mode: row.get(1),
-                    order_no: row.get(2),
-                    amount: row.get(3),
+                    project_id: row.get(0),
+                    split_msg: row.get(1),
+                    split_method: row.get(2),
+                    order_no: row.get(3),
+                    amount: row.get(4),
                 }, data_vec))
             });
         let payment_bills: Vec<TranRequestParam> = match result {

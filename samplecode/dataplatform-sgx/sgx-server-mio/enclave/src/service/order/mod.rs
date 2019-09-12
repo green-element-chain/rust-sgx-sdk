@@ -56,6 +56,11 @@ impl OrderMgr {
         let msg = "set_asset_order data to sgx server";
         let orders: Vec<OrderData> = serde_json::from_str(_param.as_str()).expect("Can't deserialize");
 
+        let sql = "delete from asset_order";
+        if !self.db_context.execute(sql) {
+            return SgxServerResponse::failed(format!("{} {}", msg, "failed."));
+        }
+
         let update_time_at = time::now_str();
         for data in orders.iter() {
             let order_time: NaiveDateTime = time::parse_native_time_from_seconds(data.orderTime as i64);
