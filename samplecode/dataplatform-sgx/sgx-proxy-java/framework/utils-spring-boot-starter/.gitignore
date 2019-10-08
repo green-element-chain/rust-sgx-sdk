@@ -1,0 +1,11 @@
+### IntelliJ IDEA ###
+.gradle
+.idea
+
+### Target ###
+build
+out
+
+### Logs ###
+logs/
+*.log

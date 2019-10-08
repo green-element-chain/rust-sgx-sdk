@@ -1,0 +1,23 @@
+@startuml
+hide footbox
+autonumber "<b>[00]"
+skinparam sequenceMessageAlign center
+
+title 银联分账交易时序图
+
+SGX代理服务 -> SGX_Server: 获取某日分账的账单列表
+SGX代理服务 <-- SGX_Server: 返回数据
+loop 分账账单
+SGX代理服务 -> SGX_Server: 获取银联交易请求参数
+SGX_Server -> SGX_Server: 生成交易参数包(卡域参数base64加密)
+SGX_Server -[#red]> SGX_Server: 新增交易记录，更新账单状态
+SGX代理服务 <-- SGX_Server: 返回未签名交易参数
+SGX代理服务 -> SGX代理服务: 交易参数卡域加密、签名
+SGX代理服务 -> 银联支付: 发起分账交易
+SGX代理服务 <-- 银联支付: 返回分账交易结果通知
+SGX代理服务 -> SGX代理服务: 通知信息验签后
+SGX_Server <- SGX代理服务: 去签名后的数据
+SGX_Server -> SGX_Server: 交易结果处理：更新支付记录和账单状态
+SGX代理服务 <-- SGX_Server: 返回处理结果，更新支付记录状态、账单状态
+end loop
+@enduml

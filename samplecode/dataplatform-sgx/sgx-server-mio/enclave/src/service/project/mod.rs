@@ -6,8 +6,10 @@ use service::project::{
     project_receipt::ProjectReceiptMgr,
     project_utils::ProjectTable,
 };
+use service::response::SgxServerResponse;
 use std::string::String;
 use std::sync::Arc;
+use std::vec::Vec;
 use utils::db::DbContext;
 
 pub mod dto;
@@ -65,7 +67,7 @@ impl ProjectMgr {
     }
 
     pub fn restful_get_project_receipt(&self, param: String) -> String {
-        self.receipt_mgr.get_project_receipt(param)
+        self.receipt_mgr.get_project_receipts(param)
     }
 
     pub fn restful_create_bill(&self, param: String) -> String {
@@ -74,5 +76,17 @@ impl ProjectMgr {
 
     pub fn restful_get_project_bill(&self, param: String) -> String {
         self.bill_mgr.get_project_bill(param)
+    }
+
+    pub fn restful_pay_bills(&self, param: String) -> String {
+        let ledger_day: u32 = param.parse::<u32>().unwrap();
+        let project_bills: Vec<u32> = self.bill_mgr.get_pay_bills(ledger_day);
+
+        SgxServerResponse::success(serde_json::to_string(&project_bills).unwrap())
+    }
+
+    pub fn restful_refresh_bills(&self, _param: String) -> String {
+        let project_bills: Vec<u32> = self.bill_mgr.get_refresh_status_bills();
+        SgxServerResponse::success(serde_json::to_string(&project_bills).unwrap())
     }
 }

@@ -1,4 +1,4 @@
-use sqlite3::{PreparedStatement, QueryFold, ResultRowAccess, SqliteError, SqliteResult};
+use sqlite3::{PreparedStatement, Query, QueryFold, ResultRow, ResultRowAccess, SqliteError, SqliteResult};
 
 use service::project::dto::ProjectReceipt;
 use service::response::SgxServerResponse;
@@ -71,7 +71,7 @@ impl ProjectReceiptMgr {
         SgxServerResponse::success(format!("{} {}", msg, "success."))
     }
 
-    pub fn get_project_receipt(&self, _param: String) -> String {
+    pub fn get_project_receipts(&self, _param: String) -> String {
         let msg = "get_project_receipt data from sgx server";
         let sql = "select project_id,charge_model,card_num,card_user,cert_type,cert_no,mobile \
             from project_receipt order by project_id desc limit 50";
@@ -104,10 +104,41 @@ impl ProjectReceiptMgr {
                 Vec::new()
             }
         };
-        SgxServerResponse::success(format!("{}", serde_json::to_string(&project_receipts).unwrap()))
+        SgxServerResponse::success(serde_json::to_string(&project_receipts).unwrap())
     }
 
-    pub fn get_project_receipt_one(&self, project: u32) -> Option<ProjectReceipt> {
-        None
+    pub fn get_project_receipt(&self, project: u32) -> Option<ProjectReceipt> {
+        let sql = format!("select project_id,charge_model,card_num,card_user,cert_type,cert_no,mobile \
+            from project_receipt where project_id = {}", project);
+        let statement: SqliteResult<PreparedStatement> = self.db_context.query(sql.as_str());
+        if statement.is_err() {
+            return None;
+        }
+        let mut stmt = statement.unwrap();
+        let mut result = stmt.query(
+            &[], |row: &mut ResultRow| {
+                Ok(ProjectReceipt {
+                    projectId: row.get(0),
+                    chargeMode: row.get(1),
+                    cardNum: row.get(2),
+                    cardUser: row.get(3),
+                    certType: row.get(4),
+                    certNo: row.get(5),
+                    mobile: row.get(6),
+                })
+            });
+        match result {
+            Err(e) => {
+                error!("failed to query project receipt {:?}", e);
+                None
+            }
+            Ok(ref mut v) => {
+                let mut sql_result: SqliteResult<Vec<ProjectReceipt>> = v.collect();
+                match sql_result {
+                    Err(_) => { None }
+                    Ok(ref mut list) => { list.pop() }
+                }
+            }
+        }
     }
 }

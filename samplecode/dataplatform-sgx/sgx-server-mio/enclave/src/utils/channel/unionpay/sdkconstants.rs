@@ -8,15 +8,16 @@ pub const LEFT_BRACE: &str = "{";
 pub const RIGHT_BRACE: &str = "}";
 pub const PERCENT_SIGN: &str = "%";
 
-
 /** 版本号. */
 pub const PARAM_VERSION: &str = "Version";
 /** 交易类型. */
-pub const PARAM_TXN_TYPE: &str = "TRAN_TYPE";
+pub const PARAM_TXN_TYPE: &str = "TranType";
 /** 待查交易类型 */
 pub const PARAM_ORI_TRAN_TYPE: &str = "OriTranType";
 /** 业务类型. */
-pub const PARAM_BIZ_TYPE: &str = "BUSI_TYPE";
+pub const PARAM_BIZ_TYPE: &str = "BusiType";
+/** 前台交易请求地址. */
+pub const PARAM_POST_URL: &str = "PostUrl";
 /** 前台通知地址. */
 pub const PARAM_FRONT_URL: &str = "MerPageUrl";
 /** 后台通知地址. */
@@ -44,7 +45,7 @@ pub const PARAM_COMPLETE_DATE: &str = "CompleteDate";
 /** 订单完成时间. */
 pub const PARAM_COMPLETE_TIME: &str = "CompleteTime";
 /** 分帐类型 */
-pub const PARAM_SPLIT_TYPE: &str = "SPLIT_TYPE";
+pub const PARAM_SPLIT_TYPE: &str = "SplitType";
 /** 分帐方式 */
 pub const PARAM_SPLIT_METHOD: &str = "SplitMethod";
 /** 分帐信息 */
@@ -75,7 +76,8 @@ pub const PARAM_SIGNATURE: &str = "Signature";
 pub const PARAM_RESP_CODE: &str = "respCode";
 /** 应答码信息. */
 pub const PARAM_RESP_MSG: &str = "respMsg";
-
+/** 通知标记：前端通知，后端通知 */
+pub const PARAM_NOTICE: &str = "Notice";
 
 /** 版本号，固定值 */
 pub const SIGN_VERSION: &str = "20140728";
@@ -86,3 +88,4 @@ pub const BUSI_TYPE: &str = "0001";
 pub const SPLIT_TYPE: &str = "0001";
 /** 交易类型： 0001 个人网瘾支付 0004 快捷支付 0608 快捷签约短信 */
 pub const TRAN_TYPE: &str = "0004";
+pub const TRAN_TYPE_QUERY: &str = "0502";

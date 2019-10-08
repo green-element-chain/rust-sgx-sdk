@@ -123,7 +123,6 @@ impl ProjectLedgerMgr {
             from project_ledger order by project_id desc limit 50";
 
         let project_ledgers: Vec<ProjectLedger> = self.inner_project_ledgers(sql);
-
-        SgxServerResponse::success(format!("{}", serde_json::to_string(&project_ledgers).unwrap()))
+        SgxServerResponse::success(serde_json::to_string(&project_ledgers).unwrap())
     }
 }

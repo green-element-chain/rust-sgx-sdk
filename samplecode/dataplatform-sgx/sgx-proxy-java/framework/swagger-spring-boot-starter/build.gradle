@@ -1,0 +1,19 @@
+version = '0.1.7-SNAPSHOT'
+uploadArchives {
+    repositories.mavenDeployer {
+        snapshotRepository(url: MAVEN_REPO_SNAPSHOT_URL) {
+            authentication(userName: MAVEN_REPO_USER, password: MAVEN_REPO_PASSWORD)
+        }
+        repository(url: MAVEN_REPO_RELEASE_URL) {
+            authentication(userName: MAVEN_REPO_USER, password: MAVEN_REPO_PASSWORD)
+        }
+    }
+}
+dependencies {
+    compile("io.springfox:springfox-swagger2:$swaggerVersion") {
+        exclude module: 'reflections'
+    }
+    compile "io.springfox:springfox-swagger-ui:$swaggerVersion"
+    compile "io.swagger:swagger-annotations:$swaggerModelsVersion"
+    compile "io.swagger:swagger-models:$swaggerModelsVersion"
+}

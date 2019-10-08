@@ -150,12 +150,12 @@ fn main() {
 
     let mut retval = sgx_status_t::SGX_SUCCESS;
 
-    let hostname = "example.com";
+    let hostname = "newpayment-test.chinapay.com";
     let port = 443;
     let socket_addr = lookup_ipv4(hostname, port);
     let socket = TcpStream::connect(&socket_addr).unwrap();
 
-    let hostname = format!("https://{}", hostname);
+    let hostname = "https://newpayment-test.chinapay.com/CTITS/service/rest/forward/syn/000000000017/0/0/0/0/0";
     let c_hostname = CString::new(hostname.to_string()).unwrap();
 
     let result = unsafe {

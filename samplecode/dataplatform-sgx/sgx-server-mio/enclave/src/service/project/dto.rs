@@ -72,8 +72,7 @@ pub fn to_bill_status(value: i16) -> BillStatus {
         1 => BillStatus::Initialize,
         2 => BillStatus::Processing,
         _ => {
-            let message = format!("invalid bill status value {}.", value);
-            panic!(message);
+            panic!(format!("invalid bill status value {}.", value));
         }
     };
     ret_value
@@ -103,21 +102,146 @@ pub struct ProjectBill {
     pub endDate: String,
     pub amount: i64,
     pub orderNo: String,
-    pub status: i32,
+    pub status: i16,
 }
 
-#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct PaymentParam {
+pub struct BillUpdate {
+    pub order_no: String,
+    pub serial_no: Option<String>,
+    pub status: i16,
+    pub tran_time: i64,
+    pub update_time: i64,
+}
+
+impl BillUpdate {
+    pub fn new(order_id: &String, _status: i16, _tran_time: i64, _time: i64) -> BillUpdate {
+        BillUpdate {
+            order_no: order_id.clone(),
+            serial_no: None,
+            status: _status,
+            tran_time: _tran_time,
+            update_time: _time,
+        }
+    }
+
+    pub fn convert(pu: &PaymentUpdate) -> BillUpdate {
+        let bill_status = match to_payment_status(pu.status) {
+            PaymentStatus::Failed => from_bill_status(BillStatus::Failed),
+            PaymentStatus::Success => from_bill_status(BillStatus::Success),
+            PaymentStatus::Processing => from_bill_status(BillStatus::Processing),
+        };
+
+        BillUpdate {
+            order_no: pu.order_no.clone(),
+            serial_no: pu.acq_seq_id.clone(),
+            status: bill_status,
+            tran_time: pu.tran_time,
+            update_time: pu.update_time.clone(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PaymentBill {
     pub bill: u32,
-    pub day: u32,
+    pub b2b: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TranRequestParam {
+pub struct TransRequestParam {
     pub project_id: i32,
     pub split_msg: String,
     pub split_method: i32,
     pub order_no: String,
     pub amount: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct QueryRequestParam {
+    pub order_no: String,
+    pub tran_time: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PaymentRecord {
+    pub id: i32,
+    pub order_no: String,
+    pub amount: i64,
+    pub method: i16,
+    pub tran_time: i64,
+    pub status: i16,
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub enum PaymentStatus {
+    //-1 支付失败
+    Failed,
+    // 0 支付成功
+    Success,
+    // 1 处理中
+    Processing,
+}
+
+pub fn from_payment_status(status: &PaymentStatus) -> i16 {
+    let ret_value = match status {
+        PaymentStatus::Failed => -1,
+        PaymentStatus::Success => 0,
+        PaymentStatus::Processing => 1,
+    };
+    ret_value as i16
+}
+
+pub fn to_payment_status(value: i16) -> PaymentStatus {
+    let ret_value = match value {
+        -1 => PaymentStatus::Failed,
+        0 => PaymentStatus::Success,
+        1 => PaymentStatus::Processing,
+        _ => {
+            panic!(format!("invalid payment status value {}.", value));
+        }
+    };
+    ret_value
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PaymentUpdate {
+    pub id: i32,
+    pub order_no: String,
+    pub tran_time: i64,
+    pub status: i16,
+    pub query_times: i32,
+    pub update_time: i64,
+    pub resp_code: Option<i32>,
+    pub resp_msg: Option<String>,
+    pub acq_seq_id: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub enum PaymentMethod {
+    //0 系统自动分账
+    SystemAuto,
+    //1 人工B2B支付
+    MannualB2B,
+}
+
+pub fn from_payment_method(method: &PaymentMethod) -> i16 {
+    let ret_value = match method {
+        PaymentMethod::SystemAuto => 0,
+        PaymentMethod::MannualB2B => 1,
+    };
+    ret_value as i16
+}
+
+pub fn to_payment_method(value: i16) -> PaymentMethod {
+    let ret_value = match value {
+        0 => PaymentMethod::SystemAuto,
+        1 => PaymentMethod::MannualB2B,
+        _ => {
+            panic!(format!("invalid payment method value {}.", value));
+        }
+    };
+    ret_value
 }

@@ -31,6 +31,13 @@ impl SgxServerResponse {
 }
 
 impl SgxServerResponse {
+    pub fn success_ext(_data: String, _message: String) -> String {
+        let mut response = SgxServerResponse::new(true);
+        response.set_data(_data);
+        response.set_message(_message);
+        serde_json::to_string(&response).unwrap()
+    }
+
     pub fn success(_data: String) -> String {
         let mut response = SgxServerResponse::new(true);
         response.set_data(_data);
@@ -38,6 +45,7 @@ impl SgxServerResponse {
     }
 
     pub fn failed(_message: String) -> String {
+        error!("{}", _message.as_str());
         let mut response = SgxServerResponse::new(false);
         response.set_message(_message);
         serde_json::to_string(&response).unwrap()

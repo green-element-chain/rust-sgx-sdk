@@ -38,7 +38,7 @@ extern crate sgx_tstd as std;
 #[cfg(target_env = "sgx")]
 extern crate sgx_types;
 
-use http_req::{request::RequestBuilder, tls, uri::Uri};
+use http_req::{request::{Method, RequestBuilder}, tls, uri::Uri};
 use sgx_types::*;
 use std::ffi::CStr;
 use std::net::TcpStream;
@@ -64,9 +64,13 @@ pub extern "C" fn send_http_request(fd: c_int, hostname: *const c_char) -> sgx_s
     //Container for response's body
     let mut writer = Vec::new();
 
+    let param_body = "MerSplitMsg=999991905069036%5E90%3B999991905069037%5E10&TranType=0004&TranDate=20190930&SplitMethod=1&RemoteAddr=101.87.163.240&BusiType=0001&OrderAmt=8641&Version=20150922&CardTranData=E%2FAq3HeyFKBS0vKpewplTJV6Mr1MtdOG%2Frfz63V090exTJJ9%2BDALM6%2B2xcFSLxStzjiMcXm4xzETYi%2Fb7zEPhA5vlsBBPigTsa%2Fqukj0DzbpGV0hFo4JE%2BeNM5AsAPXlSDX12nI%2BFkEeK9aZdr9I1yuwa%2FVyxFwNJgKx3h84Oh%2BJkW4nJk%2FApb9k7F1gto2VWPr%2FXwzAyTwNpNJkFQjfuosZCMbjWUClnzsuco4wxuRi9F7Ek%2FQHjU7QL9IEoQJIWsmW2CTfnwoofHTJsX08jwluWV69Q2G6QqLgCQEwGNag4yifzNM4V2fxePJ6TFs5JZh7OghgSBmBNPe6CaqHug%3D%3D&MerOrderNo=20190926094524339&Signature=Ps8ZH8KXNpkCKBiIlQXU3FP9S2Mix%2FG5MNTyC7%2B2KS48vC2W1K%2FAg9B3V7jLxBcdyu4BoKUm4sNC5qBO7%2BcW3g0dptfn%2FYq8PdYlqov1K4SlkvhE5Zu4erpQv3W8%2Bgflxcyf67omUTfV%2BoT9BmSAxqlJFU%2FiJ3uJlBM25OD8%2FqnQSAqB7RzW6eHlsAyZtKnZnQiB5uOrOCLrI8tt1hJlPaGfcBIbhBZh33uuwym7PUns%2BeYl82vX%2FnAZpG8s5CUwXbD%2BcBrdVN6HFji7DVJjPfN0smeP5alWNHt65cWm%2FvioOlG0RqobUD4eOg54lDRUDoD9zkJ44jm99k50qlt9gg%3D%3D&SplitType=0001&MerId=000091905069034&MerBgUrl=http%3A%2F%2F127.0.0.1%3A8085%2Fsgx%2Ftransaction%2Fnotify%2Fback&TranTime=090756";
+
     //Add header `Connection: Close`
     let response = RequestBuilder::new(&addr)
-        .header("Connection", "Close")
+        .method(Method::POST)
+        .header("Content-type", "application/x-www-form-urlencoded;charset=UTF-8")
+        .body(param_body.as_bytes())
         .send(&mut stream, &mut writer)
         .unwrap();
 

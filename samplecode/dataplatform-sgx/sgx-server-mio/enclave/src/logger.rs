@@ -5,7 +5,7 @@ use log::LevelFilter;
 use std::io::Write;
 use std::string::String;
 
-pub fn init_env_log(level_str: String) {
+pub fn init_env_log(level_str: &String) {
     let level: LevelFilter = match level_str.to_ascii_lowercase().as_str() {
         "off" => LevelFilter::Off,
         "error" => LevelFilter::Error,

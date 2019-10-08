@@ -1,0 +1,28 @@
+@startuml
+hide footbox
+autonumber "<b>[00]"
+skinparam sequenceMessageAlign center
+
+title 银联支付B2B交易时序图
+actor 用户
+
+用户 -> SGX代理服务: 选择账单发起B2B支付
+SGX代理服务 -> SGX_Server: 获取银联交易请求参数
+SGX_Server -> SGX_Server: 生成交易参数包
+SGX_Server -[#red]> SGX_Server: 添加交易初始化记录
+SGX代理服务 <-- SGX_Server: 返回未签名交易参数
+SGX代理服务 -> SGX代理服务: 交易参数签名
+用户 <-- SGX代理服务: 返回用户前端调用银联接口的参数
+用户 -> 银联支付: 调用银联前端支付接口
+银联支付 -> 银联支付: 跳转到支付信息页面
+用户 --> 银联支付: 填写支付信息并确认支付
+alt 测试环境
+用户 -> 银联支付: 点击交易成功/失败
+end alt
+SGX代理服务 <-- 银联支付: 计时10秒，通知支付结果
+SGX代理服务 -> SGX代理服务: 通知信息验签后
+SGX_Server <- SGX代理服务: 去签名后的数据
+SGX_Server -> SGX_Server: 交易结果处理：更新支付记录和账单状态
+SGX代理服务 <-- SGX_Server: 返回处理结果，成功/失败
+用户 <-- SGX代理服务: 返回跳转页面地址
+@enduml

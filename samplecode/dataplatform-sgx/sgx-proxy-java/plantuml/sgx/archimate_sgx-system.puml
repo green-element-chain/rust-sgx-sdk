@@ -1,0 +1,72 @@
+@startuml
+
+digraph sgxServer {
+    graph [rankdir=TB,compound=true]
+
+    subgraph cluster_dev {
+        label = "数据采集设备"
+        node [shape="Mrecord"]
+
+        device_zhuang [label="充电桩"]
+        device_che [label="网约车"]
+        data_device [label="采集硬件/数据平台"]
+
+        {device_che,device_zhuang} -> data_device
+    }
+
+    subgraph cluster_pay {
+        label = "支付平台"
+        node [shape="Mrecord"]
+
+        union_pay [label="银联支付"]
+        other_pay [label="其他支付"]
+    }
+
+    subgraph cluster_energy {
+        label = "能链科技软件平台"
+        'labelloc = b
+        node [shape="record"]
+
+        finance_mgr [label="金融平台"]
+        asset_mgr [label="产融平台"]
+        blockchain [label="区块链平台"]
+
+        {asset_mgr,finance_mgr} -> blockchain
+
+        subgraph cluster_sgx {
+            label = "SGX可信计算环境"
+            node [shape="record"]
+
+            sgx_app [label="APP"]
+            sgx_db  [label="SQLite/Bin File"]
+            sgx_lib [label="Encleave"]
+            sgx_proxy [label="SGX代理服务"]
+
+            subgraph cluster_sgx_md {
+                label=""
+
+                project_mgr [label="项目管理"]
+                order_mgr [label="订单数据"]
+                ledger_mgr [label="分账信息"]
+                account_mgr [label="卡域信息"]
+                bill_mgr [label="账单管理"]
+                bill_payment_mgr [label="支付管理"]
+            }
+
+            {sgx_app,sgx_proxy} -> sgx_lib
+            sgx_lib -> {project_mgr,order_mgr,ledger_mgr,account_mgr} -> sgx_db
+            sgx_lib -> {bill_mgr,bill_payment_mgr} -> sgx_db
+        }
+    }
+
+
+    data_device -> asset_mgr [label="数据采集",color="red"]
+    data_device -> sgx_proxy [label="数据采集",color="red",style="dashed"]
+    asset_mgr -> sgx_proxy [color="green",style="dashed"]
+    finance_mgr -> sgx_proxy [label="发起分账交易",color=blue]
+    sgx_lib -> finance_mgr [label="回送交易记录",color=blue]
+    sgx_proxy -> union_pay [label="发送交易请求",color="darkorange",lhead=cluster_pay,ltail=cluster_pay,constraint=false]
+    union_pay -> sgx_proxy [label="接收回调通知",color="darkorange",lhead=cluster_pay,ltail=cluster_pay,constraint=false]
+}
+
+@enduml

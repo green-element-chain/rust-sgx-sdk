@@ -27,7 +27,7 @@ toml		= { path = "../../../../third_party/gel-sgx/toml-rs" }
 serde       = { path = "../../../../third_party/serde-rs/serde/serde" }
 serde_json  = { path = "../../../../third_party/serde-rs/json"}
 serde_derive = { path = "../../../../third_party/serde-rs/serde/serde_derive" }
-bit-vec     = { path = "../../../../third_party/bit-vec", default-features = false}
+bit-vec     = { path = "../../../../third_party/bit-vec", default-features = false }
 yasna       = { path = "../../../../third_party/yasna.rs" }
 num-bigint  = { path = "../../../../third_party/num/bigint" }
 rusthex     = { path = "../../../../third_party/gel-sgx/rust-hex" }
@@ -36,7 +36,7 @@ sha1        = { path = "../../../../third_party/gel-sgx/rust-sha1" }
 base64      = { path = "../../../../third_party/rust-base64" }
 webpki      = { path = "../../../../third_party/webpki" }
 webpki-roots= { path = "../../../../third_party/webpki-roots" }
-httparse    = { version = "1.3.2", default-features=false }
+httparse    = { version = "1.3.2", default-features = false }
 http_req 	= { path = "../../../../third_party/http_req" }
 itertools   = { version = "0.7.8" , default-features = false, features = [] }
 rust-sqlite = { path = "../../../../third_party/gel-sgx/rust-sqlite3" }

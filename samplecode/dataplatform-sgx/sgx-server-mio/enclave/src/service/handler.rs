@@ -74,11 +74,23 @@ impl HttpHandler {
             "/project_bill/create" => self.project_mgr.restful_create_bill(request.param),
             "/project_bill/get" => self.project_mgr.restful_get_project_bill(request.param),
 
-            "/payment" => self.transaction_mgr.restful_payment(request.param),
-            "/payment/b2b" => self.transaction_mgr.payment_b2b(request.param),
+            /*根据分账日获取待分账的账单列表*/
+            "/project_bill/pay" => self.project_mgr.restful_pay_bills(request.param),
+            /*查询交易未结束，需要从银联刷新状态的交易记录*/
+            "/project_bill/refresh" => self.project_mgr.restful_refresh_bills(request.param),
 
-            "/notify" => self.transaction_mgr.notify(request.param),
-            "/notify/b2b" => self.transaction_mgr.notify_b2b(request.param),
+            /*根据账单ID获取银联支付的接口参数[卡域未加密，不包含签名数据]*/
+            "/unionpay/trans/param" => self.transaction_mgr.restful_trans_params(request.param),
+            "/unionpay/query/param" => self.transaction_mgr.restful_query_params(request.param),
+
+            /*调用银联分账支付的接口，由于http_req无法解决服务器信任问题，改为Java调用银联接口*/
+            "/payment/record/update" => self.transaction_mgr.restful_payment_record_update(request.param),
+
+            /*查询支付记录接口*/
+            "/payment/record/get" => self.transaction_mgr.restful_payment_record_get(request.param),
+
+            /*刷新交易结果接口*/
+            "/notify" => self.transaction_mgr.restful_notify(request.param),
 
             "/test" => self.process_after_started(),
             _ => String::from("unknown request url, it is should do nothing")

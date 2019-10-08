@@ -6,9 +6,8 @@ use service::response::{LastUpdatedTime, SgxServerResponse};
 use std::string::String;
 use std::sync::Arc;
 use std::vec::Vec;
-
-use crate::utils::db::DbContext;
-use crate::utils::time;
+use utils::db::DbContext;
+use utils::time;
 
 use self::dto::*;
 
@@ -63,7 +62,7 @@ impl OrderMgr {
 
         let update_time_at = time::now_str();
         for data in orders.iter() {
-            let order_time: NaiveDateTime = time::parse_native_time_from_seconds(data.orderTime as i64);
+            let order_time: NaiveDateTime = time::get_time(data.orderTime as i64);
             let sql = format!("insert into asset_order(\
                 order_id,asset_type,asset_id,revenue,order_time,update_at\
                 ) values({},{},{},{},'{}','{}')",
@@ -112,6 +111,6 @@ impl OrderMgr {
                 Vec::new()
             }
         };
-        return SgxServerResponse::success(format!("{}", serde_json::to_string(&asset_orders).unwrap()));
+        SgxServerResponse::success(serde_json::to_string(&asset_orders).unwrap())
     }
 }

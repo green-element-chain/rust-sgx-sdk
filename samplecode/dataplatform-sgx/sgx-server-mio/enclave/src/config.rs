@@ -2,7 +2,7 @@ use serde_derive::Deserialize;
 
 use std::clone::Clone;
 use std::io::Read;
-use std::string::String;
+use std::string::{String,ToString};
 use std::untrusted::fs::File;
 use std::vec::Vec;
 
@@ -29,16 +29,16 @@ impl ServerParam {
         self.tcp_limit_size.unwrap_or(10360)
     }
 
-    pub fn log_level(&self) -> String {
-        self.log_level.clone().unwrap_or(String::from(""))
+    pub fn log_level(&self) -> &String {
+        self.log_level.as_ref().unwrap()
     }
 
     pub fn intel_cert_use(&self) -> bool {
         self.intel_cert_use.unwrap_or(false)
     }
 
-    pub fn get_intel_ca(&self) -> String {
-        self.intel_ca.clone().unwrap()
+    pub fn get_intel_ca(&self) -> &String {
+        self.intel_ca.as_ref().unwrap()
     }
 
     pub fn get_cert(&self) -> &String {
@@ -78,28 +78,28 @@ impl UnionpayTranUrl {
         self.test_url.unwrap()
     }
 
-    pub fn tran_url(&self) -> String {
-        self.back_url.clone().unwrap()
+    pub fn tran_url(&self) -> &String {
+        self.back_url.as_ref().unwrap()
     }
 
-    pub fn tran_url_b2b(&self) -> String {
-        self.front_url.clone().unwrap()
+    pub fn tran_url_b2b(&self) -> &String {
+        self.front_url.as_ref().unwrap()
     }
 
-    pub fn query_url(&self) -> String {
-        self.query_url.clone().unwrap()
+    pub fn query_url(&self) -> &String {
+        self.query_url.as_ref().unwrap()
     }
 
-    pub fn sms_url(&self) -> String {
-        self.sms_url.clone().unwrap()
+    pub fn sms_url(&self) -> &String {
+        self.sms_url.as_ref().unwrap()
     }
 
-    pub fn mer_url(&self) -> String {
-        self.merchant_url.clone().unwrap()
+    pub fn mer_url(&self) -> &String {
+        self.merchant_url.as_ref().unwrap()
     }
 
-    pub fn mer_query_url(&self) -> String {
-        self.merchant_query_url.clone().unwrap()
+    pub fn mer_query_url(&self) -> &String {
+        self.merchant_query_url.as_ref().unwrap()
     }
 }
 
@@ -112,65 +112,35 @@ pub struct UnionpayTranParam {
     notify_back: Option<String>,
     notify_sign: Option<String>,
     remote_ip: Option<String>,
-    signature_field: Option<String>,
-    signature_exclude: Option<String>,
-    signature_cert_type: Option<String>,
-    signature_cert_password: Option<String>,
-    signature_cert_tran: Option<String>,
-    signature_cert_verify: Option<String>,
 }
 
 impl UnionpayTranParam {
-    pub fn tran_type_b2b(&self) -> String {
-        self.tran_type_b2b.clone().unwrap()
+    pub fn tran_type_b2b(&self) -> &String {
+        self.tran_type_b2b.as_ref().unwrap()
     }
 
-    pub fn mer_id(&self) -> String {
-        self.tran_mer_id.clone().unwrap()
+    pub fn mer_id(&self) -> &String {
+        self.tran_mer_id.as_ref().unwrap()
     }
 
-    pub fn redirect_url(&self) -> String {
-        self.tran_redirect.clone().unwrap()
+    pub fn redirect_url(&self) -> &String {
+        self.tran_redirect.as_ref().unwrap()
     }
 
-    pub fn notify_tran_url_b2b(&self) -> String {
-        self.notify_front.clone().unwrap()
+    pub fn notify_tran_url_b2b(&self) -> &String {
+        self.notify_front.as_ref().unwrap()
     }
 
-    pub fn notify_tran_url(&self) -> String {
-        self.notify_back.clone().unwrap()
+    pub fn notify_tran_url(&self) -> &String {
+        self.notify_back.as_ref().unwrap()
     }
 
-    pub fn notify_sign_url(&self) -> String {
-        self.notify_sign.clone().unwrap()
+    pub fn notify_sign_url(&self) -> &String {
+        self.notify_sign.as_ref().unwrap()
     }
 
-    pub fn remote_ip(&self) -> String {
-        self.remote_ip.clone().unwrap()
-    }
-
-    pub fn sign_field(&self) -> String {
-        self.signature_field.clone().unwrap()
-    }
-
-    pub fn sign_exclude(&self) -> String {
-        self.signature_exclude.clone().unwrap()
-    }
-
-    pub fn sign_cert_type(&self) -> String {
-        self.signature_cert_type.clone().unwrap()
-    }
-
-    pub fn sign_cert_pwd(&self) -> String {
-        self.signature_cert_password.clone().unwrap()
-    }
-
-    pub fn sign_cert_tran(&self) -> String {
-        self.signature_cert_tran.clone().unwrap()
-    }
-
-    pub fn sign_cert_verify(&self) -> String {
-        self.signature_cert_verify.clone().unwrap()
+    pub fn remote_ip(&self) -> &String {
+        self.remote_ip.as_ref().unwrap()
     }
 }
 
@@ -196,7 +166,7 @@ impl ApplicationConfig {
         fn update_string(parent_path: &String, object: Option<String>) -> Option<String> {
             let cfg_value = object.unwrap_or(String::from(""));
             if !cfg_value.is_empty() {
-                let real_value = parent_path.clone() + cfg_value.as_str();
+                let real_value = parent_path.to_string() + cfg_value.as_str();
                 return Some(real_value);
             }
             Some(cfg_value.parse().unwrap())
@@ -207,12 +177,6 @@ impl ApplicationConfig {
             x.tls_cert = update_string(relative_path, x.tls_cert.clone());
             x.tls_key = update_string(relative_path, x.tls_key.clone());
             x.db_store = update_string(relative_path, x.db_store.clone());
-        }
-
-        let tran_params = self.unionpay_tran_param.as_mut().unwrap();
-        for y in tran_params {
-            y.signature_cert_tran = update_string(relative_path, y.signature_cert_tran.clone());
-            y.signature_cert_verify = update_string(relative_path, y.signature_cert_verify.clone());
         }
     }
 

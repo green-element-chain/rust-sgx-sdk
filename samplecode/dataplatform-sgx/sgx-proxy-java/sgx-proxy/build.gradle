@@ -1,0 +1,23 @@
+//archivesBaseName = 'sgx-server'
+apply plugin: 'org.springframework.boot'
+buildscript {
+    repositories {
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+    }
+}
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':framework:utils-spring-boot-starter')
+    compile project(':framework:swagger-spring-boot-starter')
+    compile("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion") {
+        exclude(module: 'snakeyaml')
+    }
+    implementation "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
+    compile 'mysql:mysql-connector-java:5.1.21'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.58'
+    compile 'log4j:log4j:1.2.17'
+    compile 'commons-codec:commons-codec:1.13'
+}

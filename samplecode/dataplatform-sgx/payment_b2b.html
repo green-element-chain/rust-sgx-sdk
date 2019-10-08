@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="app">
+<input type="text"  id="input">
+<button v-on:click="btn">调取</button>
+    <form name="sendOrder" :action='formUrl'  method="POST"  >
+    <table v-for="(domain,i) in dynamicValidateForm" :key="i" >
+        <tr >
+            <td>{{domain.label}}</td>
+            <td><input type="text" :name="domain.label" :value="domain.value"></td>
+        </tr>
+    </table>
+    </form>
+</div>
+</body>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'Hello Vue!',
+            dynamicValidateForm:[],
+            formUrl:""
+        },
+        methods: {
+            btn: function () {
+                var id = $(" #input ").val();
+                let that = this;
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://192.168.1.30:8085/sgx/transaction/payment/b2b/' + id,//请求地址
+                    // beforeSend: function (XMLHttpRequest) {
+                    //     XMLHttpRequest.setRequestHeader("token", 'e0d458bcaf604eaaa3b5eea0a6a533a9');
+                    // },
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log(data)
+                            let newData = data.sendData.split('&');
+                            let arr =[];
+                            for(let i=0;i<newData.length;i++){
+                                let obj = {};
+                                obj.label = newData[i].split('=')[0];
+                                obj.value = newData[i].split('=')[1]
+                                arr.push(obj)
+                            }
+                            that.formUrl = data.requestUrl;
+                            that.dynamicValidateForm = arr;
+                            if(that.dynamicValidateForm.length>0){
+                                setTimeout(()=>{
+                                    document.sendOrder.submit()
+                                },500)
+                            }
+                        }
+                })
+            },
+        }
+    })
+</script>
+</html>

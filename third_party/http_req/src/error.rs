@@ -14,6 +14,7 @@ pub enum ParseErr {
 }
 
 impl fmt::Display for ParseErr {
+    #![allow(deprecated)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "ParseErr: {}", self.description())
     }
@@ -55,12 +56,14 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
+    #![allow(deprecated)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Error: {}", self.description())
     }
 }
 
 impl StdErr for Error {
+    #![allow(deprecated)]
     fn description(&self) -> &str {
         use self::Error::*;
 
@@ -69,20 +72,6 @@ impl StdErr for Error {
             Parse(e) => e.description(),
             Tls => "TLS error",
         }
-    }
-}
-
-#[cfg(feature = "native-tls")]
-impl From<native_tls::Error> for Error {
-    fn from(_e: native_tls::Error) -> Self {
-        Error::Tls
-    }
-}
-
-#[cfg(feature = "native-tls")]
-impl<T> From<native_tls::HandshakeError<T>> for Error {
-    fn from(_e: native_tls::HandshakeError<T>) -> Self {
-        Error::Tls
     }
 }
 

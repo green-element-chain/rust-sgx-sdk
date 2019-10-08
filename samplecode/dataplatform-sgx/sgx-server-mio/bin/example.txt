@@ -1,0 +1,15 @@
+BusiType=0001
+MerBgUrl=http://127.0.0.1:9000/dataplatformServer/payment/backRcvResponse
+MerId=000091905069034
+MerOrderNo=20190523183849760L
+MerPageUrl=http://127.0.0.1:9000/dataplatformServer/payment/frontRcvResponse
+MerSplitMsg=999991905069034^60;999991905069035^40
+OrderAmt=457123
+RemoteAddr=101.87.163.240
+Signature=qFyX9ebkHPpXXa/yGHM7w8AgSdxV5EZYJDNSAvENjTY4yqF07KzOzC99StNJZWGAs+k3Q5HMp8OoUTCc/ERV2EwjxoJ8PKIewcr6rE4ApqUYtqgU7EBeByVgW7miyC69CFZtwQ+Nz4NwykwrBqdaGFAnUUKPdKAK2TBOp8eq3MtjZzDOKXOC3CcsqEjmDgDrL4TzvrIdZINp9t1lJ5TxkpNHT4r38EyXUJa02RVdqrbNorr4iZVPe7mVDQ9xMJqZlpVzLyw9va4hqz8NtLXj4IzWum0RqD1OcfrRcqGRge29SzBICcwI7C+qiOW5kGvGmRF2KpUx9yRhA4wJlZBHEA==
+SplitMethod=1
+SplitType=0001
+TranDate=20190927
+TranTime=165428
+TranType=0001
+Version=20150922

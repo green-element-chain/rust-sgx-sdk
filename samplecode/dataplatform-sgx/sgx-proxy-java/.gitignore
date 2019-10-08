@@ -1,0 +1,15 @@
+### IntelliJ IDEA ###
+.gradle
+.idea
+*.iml
+
+### Target ###
+build
+out
+
+### Logs ###
+logs/
+*.log
+
+### Others ###
+plantuml/other

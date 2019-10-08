@@ -1,0 +1,4 @@
+rootProject.name = 'framework'
+include ':sgx-spring-boot-starter'
+include ':swagger-spring-boot-starter'
+include ':utils-spring-boot-starter'
