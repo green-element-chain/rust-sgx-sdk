@@ -8,7 +8,7 @@ intel_cert_use = false
 intel_ca = "cert/server/ca.crt"
 tls_cert = "cert/server/client.crt"
 tls_key = "cert/server/client.key"
-db_store = "data.sqlite"
+db_store = "/opt/sgx-client-java/data.sqlite"
 db_conn_max = 30
 db_timezone = 28800
 
