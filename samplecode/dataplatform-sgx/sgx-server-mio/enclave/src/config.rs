@@ -5,6 +5,7 @@ use std::io::Read;
 use std::string::{String,ToString};
 use std::untrusted::fs::File;
 use std::vec::Vec;
+use std::path::Path;
 
 #[derive(Deserialize, Debug)]
 pub struct ServerParam {
@@ -163,6 +164,16 @@ impl ApplicationConfig {
     }
 
     fn set_relative_path(&mut self, relative_path: &String) {
+        fn exists(object: Option<String>) -> bool {
+            if object.is_some() {
+                let cfg_value = object.unwrap();
+                if !cfg_value.is_empty() {
+                    return Path::new(cfg_value.as_str()).exists();
+                }
+            }
+            false
+        }
+
         fn update_string(parent_path: &String, object: Option<String>) -> Option<String> {
             let cfg_value = object.unwrap_or(String::from(""));
             if !cfg_value.is_empty() {
@@ -176,7 +187,9 @@ impl ApplicationConfig {
         for x in server_params {
             x.tls_cert = update_string(relative_path, x.tls_cert.clone());
             x.tls_key = update_string(relative_path, x.tls_key.clone());
-            x.db_store = update_string(relative_path, x.db_store.clone());
+            if !exists(x.db_store.clone()) {
+                x.db_store = update_string(relative_path, x.db_store.clone());
+            }
         }
     }
 
