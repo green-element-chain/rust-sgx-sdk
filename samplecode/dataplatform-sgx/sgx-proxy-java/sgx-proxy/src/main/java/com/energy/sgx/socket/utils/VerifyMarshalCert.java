@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
-import springfox.documentation.spring.web.json.Json;
 
 /**
  * @author Bryan
@@ -34,14 +33,14 @@ public class VerifyMarshalCert {
         String[] prime256v1_oid_string = new String[]{"0x06",
             "0x08", "0x2a", "0x86", "0x48", "0xce", "0x3d", "0x03", "0x01", "0x07"};
 
-        List<Byte> prime256v1_oid = CommonUtil.string2BytesList(prime256v1_oid_string);
-        int offset = CommonUtil.getIndexOf(certList, prime256v1_oid);
+        List<Byte> prime256v1_oid = SocketUtil.string2BytesList(prime256v1_oid_string);
+        int offset = SocketUtil.getIndexOf(certList, prime256v1_oid);
         // 10 + TAG (0x03)
         offset += 11;
 
         // Obtain Public Key length
         int length = Byte.toUnsignedInt(certList.get(offset));
-        if (length > Byte.toUnsignedInt(CommonUtil.hexToByte("80"))) {
+        if (length > Byte.toUnsignedInt(SocketUtil.hexToByte("80"))) {
             length = Byte.toUnsignedInt(certList.get(offset + 1)) * 256 + Byte.toUnsignedInt(certList.get(offset + 2));
             offset += 2;
         }
@@ -49,18 +48,18 @@ public class VerifyMarshalCert {
         // Obtain Public Key
         offset += 1;
         // skip "00 04"
-        byte[] pub_k = CommonUtil.list2array(certList.subList(offset + 2, offset + length));
+        byte[] pub_k = SocketUtil.list2array(certList.subList(offset + 2, offset + length));
 
         String[] ns_cmt_oid_string = new String[]{"0x06",
             "0x09", "0x60", "0x86", "0x48", "0x01", "0x86", "0xf8", "0x42", "0x01", "0x0d"};
-        List<Byte> ns_cmt_oid = CommonUtil.string2BytesList(ns_cmt_oid_string);
-        offset = CommonUtil.getIndexOf(certList, ns_cmt_oid);
+        List<Byte> ns_cmt_oid = SocketUtil.string2BytesList(ns_cmt_oid_string);
+        offset = SocketUtil.getIndexOf(certList, ns_cmt_oid);
         // 10 + TAG (0x03)
         offset += 12;
 
         // Obtain Netscape Comment length
         length = Byte.toUnsignedInt(certList.get(offset));
-        if (length > Byte.toUnsignedInt(CommonUtil.hexToByte("80"))) {
+        if (length > Byte.toUnsignedInt(SocketUtil.hexToByte("80"))) {
             length = Byte.toUnsignedInt(certList.get(offset + 1)) * 256 + Byte.toUnsignedInt(certList.get(offset + 2));
             offset += 2;
         }
@@ -74,9 +73,9 @@ public class VerifyMarshalCert {
     public byte[] verifyCert(InputStream is, List<Byte> payload) throws Exception {
         Base64.Decoder decoder = Base64.getDecoder();
 
-        int startIndex = payload.indexOf(CommonUtil.hexToByte("7c"));
-        int endIndex = payload.lastIndexOf(CommonUtil.hexToByte("7c"));
-        byte[] attnReportRaw = CommonUtil.list2array(payload.subList(0, startIndex));
+        int startIndex = payload.indexOf(SocketUtil.hexToByte("7c"));
+        int endIndex = payload.lastIndexOf(SocketUtil.hexToByte("7c"));
+        byte[] attnReportRaw = SocketUtil.list2array(payload.subList(0, startIndex));
 
         PEMParser pemParser = null;
         try {
@@ -85,7 +84,7 @@ public class VerifyMarshalCert {
             X509Certificate provider = new JcaX509CertificateConverter().getCertificate(x509CertificateHolder);
 
             CertificateFactory cf = CertificateFactory.getInstance("X509");
-            byte[] sigCertRaw = CommonUtil.list2array(payload.subList(endIndex + 1, payload.size()));
+            byte[] sigCertRaw = SocketUtil.list2array(payload.subList(endIndex + 1, payload.size()));
             byte[] sigCert = decoder.decode(sigCertRaw);
             X509Certificate server = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(sigCert));
             server.verify(provider.getPublicKey());
@@ -95,7 +94,7 @@ public class VerifyMarshalCert {
             signature.initVerify(server);
             signature.update(attnReportRaw);
 
-            byte[] sigRaw = CommonUtil.list2array(payload.subList(startIndex + 1, endIndex));
+            byte[] sigRaw = SocketUtil.list2array(payload.subList(startIndex + 1, endIndex));
             byte[] sig = decoder.decode(sigRaw);
             if (!signature.verify(sig)) {
                 throw new Exception("failed to parse root certificate");

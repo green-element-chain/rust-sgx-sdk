@@ -10,7 +10,7 @@ import java.util.List;
  * @author Bryan
  * @date 2019-07-17
  */
-public class CommonUtil {
+public class SocketUtil {
 
     public static String bytesToHex(byte[] bytes) {
         StringBuffer sb = new StringBuffer();

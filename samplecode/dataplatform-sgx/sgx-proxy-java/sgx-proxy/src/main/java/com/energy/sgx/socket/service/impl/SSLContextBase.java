@@ -2,7 +2,7 @@ package com.energy.sgx.socket.service.impl;
 
 import com.energy.sgx.socket.dto.ServerCertInfo;
 import com.energy.sgx.socket.dto.ServerSgxProperties;
-import com.energy.sgx.socket.utils.CommonUtil;
+import com.energy.sgx.socket.utils.SocketUtil;
 import com.energy.sgx.socket.utils.PemReader;
 import com.energy.sgx.socket.utils.VerifyMarshalCert;
 import java.io.InputStream;
@@ -65,8 +65,8 @@ public class SSLContextBase {
                             marshalCert.verifyAttnReport(attnReportRaw, certData.pubKey);
 
                             String outputPath = properties.getCert().getOutput();
-                            CommonUtil.writeInFileByfb(CommonUtil.bytesToHex(certData.pubKey), outputPath + "/pubkey.txt");
-                            CommonUtil.writeInFileByfb(CommonUtil.bytesToHex(attnReportRaw), outputPath + "/report.txt");
+                            SocketUtil.writeInFileByfb(SocketUtil.bytesToHex(certData.pubKey), outputPath + "/pubkey.txt");
+                            SocketUtil.writeInFileByfb(SocketUtil.bytesToHex(attnReportRaw), outputPath + "/report.txt");
                         } else {
                             message = "attn report raw is empty.";
                         }

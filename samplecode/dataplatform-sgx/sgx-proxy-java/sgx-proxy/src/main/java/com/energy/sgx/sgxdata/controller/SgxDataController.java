@@ -1,10 +1,13 @@
 package com.energy.sgx.sgxdata.controller;
 
 import com.energy.sgx.sgxdata.service.DataService;
+import com.energy.sgx.utils.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +33,7 @@ public class SgxDataController {
         return dataService.transferAssetOrderToSgx();
     }
 
-    @ApiOperation(value = "测试用：从SGX查询数据", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
+    @ApiOperation(value = "从SGX查询数据", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "assetType", value = "资产类型ID", required = true, dataType = "int", defaultValue = "10"),
         @ApiImplicitParam(name = "date", value = "数据日期，例如：'2019-07-16'", required = true, defaultValue = "2019-07-18")
@@ -38,9 +41,11 @@ public class SgxDataController {
     @GetMapping("asset/order/get/{assetType}/{date}")
     public Object queryAssetOrderFromSgxServer(
         @PathVariable Integer assetType,
-        @PathVariable String date) {
-        log.info("query data from sgx server, asset type {}, date {}", assetType, date);
-        return dataService.queryAssetOrderFromSgx(assetType, date);
+        @PathVariable String date,
+        @ApiParam(value = "分页号") @RequestParam(name = "p", required = false) Integer pageNo) {
+        Date inputDate = CommonUtil.checkValidDate(date);
+        log.info("query data from sgx server, asset type {}, date {}, pageNo {}", assetType, date, pageNo);
+        return dataService.queryAssetOrderFromSgx(assetType, inputDate, pageNo);
     }
 
     @ApiOperation(value = "转移项目关联资产到SGX", notes = "将用于分账的项目资产写入到SGX Server服务器，让分账协议在SGX内部自动执行。")
@@ -59,9 +64,10 @@ public class SgxDataController {
 
     @ApiOperation(value = "从SGX查询项目分账协议", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
     @GetMapping("project/ledger/get")
-    public Object queryProjectLedgerFromSgxServer() {
-        log.info("query project ledger from sgx at {}", System.currentTimeMillis());
-        return dataService.queryProjectLedgerFromSgx();
+    public Object queryProjectLedgerFromSgxServer(
+        @ApiParam(value = "分页号") @RequestParam(name = "p", required = false) Integer pageNo) {
+        log.info("query project ledger from sgx at {}, pageNo {}", System.currentTimeMillis(), pageNo);
+        return dataService.queryProjectLedgerFromSgx(pageNo);
     }
 
     @ApiOperation(value = "转移项目分账卡域信息到SGX", notes = "将用于分账的分账用到的卡域信息写入到SGX Server服务器，让分账协议在SGX内部自动执行。")
@@ -73,9 +79,10 @@ public class SgxDataController {
 
     @ApiOperation(value = "从SGX查询项目分账卡域信息", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
     @GetMapping("project/receipt/get")
-    public Object queryProjectReceiptFromSgxServer() {
-        log.info("query project receipt from sgx at {}", System.currentTimeMillis());
-        return dataService.queryProjectReceiptFromSgx();
+    public Object queryProjectReceiptFromSgxServer(
+        @ApiParam(value = "分页号") @RequestParam(name = "p", required = false) Integer pageNo) {
+        log.info("query project receipt from sgx at {}, pageNo {}", System.currentTimeMillis(), pageNo);
+        return dataService.queryProjectReceiptFromSgx(pageNo);
     }
 
 
@@ -97,8 +104,17 @@ public class SgxDataController {
 
     @ApiOperation(value = "从SGX查询项目账单协议", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
     @GetMapping("project/bill/get")
-    public Object queryProjectBillFromSgxServer() {
-        log.info("query data from sgx at {}", System.currentTimeMillis());
-        return dataService.queryProjectBillFromSgx();
+    public Object queryProjectBillFromSgxServer(
+        @ApiParam(value = "分页号") @RequestParam(name = "p", required = false) Integer pageNo) {
+        log.info("query data from sgx at {}, pageNo {}", System.currentTimeMillis(), pageNo);
+        return dataService.queryProjectBillFromSgx(pageNo);
+    }
+
+    @ApiOperation(value = "从SGX查询项目分账交易", notes = "从SGX Server服务器查询需要的数据，用于显示使用。")
+    @GetMapping("project/transaction/get")
+    public Object queryProjectTransactionFromSgxServer(
+        @ApiParam(value = "分页号") @RequestParam(name = "p", required = false) Integer pageNo) {
+        log.info("query data from sgx at {}, pageNo {}", System.currentTimeMillis(), pageNo);
+        return dataService.queryProjectTransactionFromSgx(pageNo);
     }
 }

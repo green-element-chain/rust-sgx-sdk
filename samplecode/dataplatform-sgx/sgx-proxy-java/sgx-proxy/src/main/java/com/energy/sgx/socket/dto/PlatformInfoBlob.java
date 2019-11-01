@@ -1,6 +1,6 @@
 package com.energy.sgx.socket.dto;
 
-import com.energy.sgx.socket.utils.CommonUtil;
+import com.energy.sgx.socket.utils.SocketUtil;
 import java.util.Arrays;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,7 +40,7 @@ public class PlatformInfoBlob {
     private long computeDec(byte[] piBlobSlice) {
         StringBuilder hexString = new StringBuilder();
         for (int i = piBlobSlice.length - 1; i >= 0; i--) {
-            hexString.append(CommonUtil.byteToHex(piBlobSlice[i]));
+            hexString.append(SocketUtil.byteToHex(piBlobSlice[i]));
         }
         return Long.parseLong(hexString.toString(), 16);
     }

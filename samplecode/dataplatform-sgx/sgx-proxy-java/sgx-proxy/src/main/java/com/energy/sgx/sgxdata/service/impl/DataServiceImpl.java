@@ -5,6 +5,7 @@ import com.energy.sgx.sgxdata.dto.request.ProjectAssetVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectBillGenVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectLedgerVo;
 import com.energy.sgx.sgxdata.dto.request.ProjectReceiptVo;
+import com.energy.sgx.sgxdata.dto.request.QueryRequestVo;
 import com.energy.sgx.sgxdata.dto.response.LastUpdatedTime;
 import com.energy.sgx.sgxdata.dto.response.SgxServerResponse;
 import com.energy.sgx.sgxdata.service.DataService;
@@ -13,8 +14,11 @@ import com.energy.sgx.sgxdata.service.impl.project.ProjectAssetService;
 import com.energy.sgx.sgxdata.service.impl.project.ProjectLedgerService;
 import com.energy.sgx.sgxdata.service.impl.project.ProjectReceiptService;
 import com.energy.utils.JsonUtil;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,24 @@ public class DataServiceImpl extends ServiceBase implements DataService {
     @Autowired
     private AssetOrderService assetOrderService;
 
+    @Data
+    public static class AssetOrderCondition {
+
+        private Integer assetType;
+        private Long start;
+        private Long end;
+
+        AssetOrderCondition(Integer assetType, Date inputDate) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(inputDate);
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+
+            this.assetType = assetType;
+            this.start = inputDate.getTime();
+            this.end = calendar.getTime().getTime();
+        }
+    }
+
     private LastUpdatedTime getLastUpdatedTime(String url) {
         String updateTimeResp = sendDataToSgx(url, "").toString();
         log.info("{}", updateTimeResp);
@@ -56,8 +78,10 @@ public class DataServiceImpl extends ServiceBase implements DataService {
         return result;
     }
 
-    private Object queryDataListFromSgx(String url, String param) {
-        String responseJson = sendDataToSgx(url, param).toString();
+    private Object queryDataListFromSgx(String url, Integer pageNo, String param) {
+        QueryRequestVo vo = new QueryRequestVo(pageNo, param);
+        String params = JsonUtil.toString(vo);
+        String responseJson = sendDataToSgx(url, params).toString();
         SgxServerResponse response = JsonUtil.fromJson(responseJson, SgxServerResponse.class);
         return response.getData();
     }
@@ -78,8 +102,12 @@ public class DataServiceImpl extends ServiceBase implements DataService {
     }
 
     @Override
-    public Object queryAssetOrderFromSgx(Integer assetType, String date) {
-        String responseJson = sendDataToSgx("/order_data/get", "").toString();
+    public Object queryAssetOrderFromSgx(Integer assetType, Date inputDate, Integer pageNo) {
+        AssetOrderCondition condition = new AssetOrderCondition(assetType, inputDate);
+        QueryRequestVo requestVo = new QueryRequestVo(pageNo, JsonUtil.toString(condition));
+        String dataJsonStr = JsonUtil.toString(requestVo);
+
+        String responseJson = sendDataToSgx("/order_data/get", dataJsonStr).toString();
         SgxServerResponse response = JsonUtil.fromJson(responseJson, SgxServerResponse.class);
         return response.getData();
     }
@@ -115,8 +143,8 @@ public class DataServiceImpl extends ServiceBase implements DataService {
     }
 
     @Override
-    public Object queryProjectLedgerFromSgx() {
-        return queryDataListFromSgx("/project_ledger/get", "");
+    public Object queryProjectLedgerFromSgx(Integer pageNo) {
+        return queryDataListFromSgx("/project_ledger/get", pageNo, "");
     }
 
     @Override
@@ -135,8 +163,8 @@ public class DataServiceImpl extends ServiceBase implements DataService {
     }
 
     @Override
-    public Object queryProjectReceiptFromSgx() {
-        return queryDataListFromSgx("/project_receipt/get", "");
+    public Object queryProjectReceiptFromSgx(Integer pageNo) {
+        return queryDataListFromSgx("/project_receipt/get", pageNo, "");
     }
 
     @Override
@@ -151,7 +179,12 @@ public class DataServiceImpl extends ServiceBase implements DataService {
     }
 
     @Override
-    public Object queryProjectBillFromSgx() {
-        return queryDataListFromSgx("/project_bill/get", "");
+    public Object queryProjectBillFromSgx(Integer pageNo) {
+        return queryDataListFromSgx("/project_bill/get", pageNo, "");
+    }
+
+    @Override
+    public Object queryProjectTransactionFromSgx(Integer pageNo) {
+        return queryDataListFromSgx("/project_transaction/get", pageNo, "");
     }
 }
