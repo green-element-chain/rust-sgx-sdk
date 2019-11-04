@@ -54,8 +54,8 @@ public class DataServiceImpl extends ServiceBase implements DataService {
             calendar.add(Calendar.DAY_OF_MONTH, 1);
 
             this.assetType = assetType;
-            this.start = inputDate.getTime();
-            this.end = calendar.getTime().getTime();
+            this.start = inputDate.getTime() / 1000;
+            this.end = calendar.getTime().getTime() / 1000;
         }
     }
 
